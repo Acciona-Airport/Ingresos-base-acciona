@@ -6,27 +6,29 @@
   <title>Ingreso de Equipos - Acciona</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #fff5f5;
-      color: #000;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+      color: #0d47a1;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 30px 15px;
       margin: 0;
+      transition: all 0.3s ease-in-out;
     }
     .container {
       background-color: #ffffff;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(200, 0, 0, 0.1);
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 8px 20px rgba(13, 71, 161, 0.2);
       max-width: 600px;
       width: 100%;
-      border: 1px solid #f0c0c0;
+      border: 1px solid #bbdefb;
+      transition: all 0.4s ease;
     }
     h1 {
-      font-size: 22px;
-      color: #c80000;
+      font-size: 24px;
+      color: #0d47a1;
       text-align: center;
       margin-bottom: 25px;
     }
@@ -34,31 +36,61 @@
       display: block;
       margin-top: 16px;
       font-weight: bold;
+      color: #1565c0;
+      transition: color 0.3s ease;
     }
     input, textarea {
       width: 100%;
       padding: 10px;
       margin-top: 6px;
       border-radius: 6px;
-      border: 1px solid #ccc;
+      border: 1px solid #90caf9;
       font-size: 14px;
+      background-color: #f1f8ff;
+      transition: all 0.3s ease;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #42a5f5;
+      box-shadow: 0 0 0 2px #90caf988;
+      background-color: #e3f2fd;
     }
     .datetime-box {
-      background-color: #fff0f0;
-      border: 1px solid #ccc;
+      background-color: #e3f2fd;
+      border: 1px solid #90caf9;
       padding: 12px;
       text-align: center;
       border-radius: 8px;
       margin-bottom: 20px;
+      font-weight: bold;
     }
     .section {
       margin-bottom: 25px;
     }
     .result-box {
       min-height: 40px;
-      border: 1px dashed #ccc;
+      border: 1px dashed #90caf9;
       padding: 10px;
       background-color: #f9f9f9;
+      color: #0d47a1;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+    .btn {
+      background-color: #1976d2;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .btn:hover {
+      background-color: #0d47a1;
+      transform: scale(1.02);
     }
   </style>
 </head>
@@ -102,6 +134,8 @@
       <label for="guardia">Guardia quien fiscaliza</label>
       <input type="text" id="guardia" placeholder="Nombre del guardia" />
     </div>
+
+    <button class="btn" onclick="enviarFormulario()">Enviar</button>
   </div>
 
   <script>
@@ -177,6 +211,10 @@
         contenedorObs.innerText = "❌ Error";
         console.error(error);
       }
+    }
+
+    function enviarFormulario() {
+      alert("📨 Datos preparados para envío. (Aquí puedes vincular el envío a Google Sheets si lo deseas)");
     }
   </script>
 </body>
