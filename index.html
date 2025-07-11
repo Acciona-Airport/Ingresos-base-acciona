@@ -25,21 +25,21 @@
       border: 1px solid #555;
     }
     .logo-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-.logo {
-  max-width: 140px;
-  padding: 8px;
-  background-color: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.05);
-  transition: transform 0.3s ease;
-}
-.logo:hover {
-  transform: scale(1.03);
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .logo {
+      max-width: 140px;
+      padding: 8px;
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.05);
+      transition: transform 0.3s ease;
+    }
+    .logo:hover {
+      transform: scale(1.03);
     }
     h1 {
       font-size: 24px;
@@ -100,6 +100,9 @@
       background-color: #b71c1c;
       transform: scale(1.02);
     }
+    #nombre-manual-section {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -120,6 +123,11 @@
     <div class="section">
       <label>Datos del Conductor:</label>
       <div class="result-box" id="datos-conductor"></div>
+    </div>
+
+    <div class="section" id="nombre-manual-section">
+      <label for="nombre-manual">Ingrese manualmente nombre del conductor:</label>
+      <input type="text" id="nombre-manual" placeholder="Nombre completo" />
     </div>
 
     <div class="section">
@@ -164,15 +172,29 @@
     async function buscarDatosConductor() {
       const rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
-      if (!rut) return contenedor.innerText = "";
+      const seccionManual = document.getElementById("nombre-manual-section");
+
+      if (!rut) {
+        contenedor.innerText = "";
+        seccionManual.style.display = "none";
+        return;
+      }
 
       contenedor.innerText = "Buscando...";
       try {
         const response = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=personal&id=" + encodeURIComponent(rut));
         const data = await response.json();
-        contenedor.innerText = data.error ? "❌ No encontrado." : data.NOMBRE || "(sin nombre registrado)";
+
+        if (data.error || !data.NOMBRE) {
+          contenedor.innerText = "❌ No encontrado.";
+          seccionManual.style.display = "block";
+        } else {
+          contenedor.innerText = data.NOMBRE;
+          seccionManual.style.display = "none";
+        }
       } catch (e) {
         contenedor.innerText = "❌ Error al consultar.";
+        seccionManual.style.display = "block";
         console.error(e);
       }
     }
