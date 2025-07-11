@@ -21,7 +21,7 @@
       padding: 25px;
       border-radius: 18px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      max-width: 420px;
+      max-width: 500px;
       width: 100%;
       border: 1px solid #555;
     }
@@ -67,15 +67,20 @@
 
     .input-estilo {
       width: 100%;
-      padding: 18px 12px;
+      padding: 14px 12px;
       border-radius: 6px;
       border: 1px solid #666;
       font-size: 16px;
       background-color: #1e1e1e;
       color: #fff;
       box-sizing: border-box;
-      line-height: 1.4;
       transition: border-color 0.3s, box-shadow 0.3s;
+      height: 45px; /* Fijar altura */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
     }
 
     .input-ajustado {
