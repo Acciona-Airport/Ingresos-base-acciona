@@ -116,6 +116,20 @@
       background-color: #b71c1c;
       transform: scale(1.02);
     }
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -157,7 +171,7 @@
       <label>¿Habilitado?</label>
       <div class="result-box" id="status-equipo"></div>
       <div class="alert-box alert-red" id="alerta-ingreso">⚠️ Equipo no habilitado para ingreso, contacte a Control Flota Tel: 56 9 3860 1767</div>
-      <div class="alert-box alert-yellow" id="alerta-carga">⚠️ OJO: este equipo solo estaría habilitado a ingreso si va a cargar combustible o batería.</div>
+      <div class="alert-box alert-yellow" id="alerta-carga-extra">⚠️ Ojo: Este equipo estaría habilitado solo a ingresar a Cargar combustible o Carga eléctrica.</div>
     </div>
 
     <div class="section">
@@ -195,7 +209,7 @@
         return;
       }
 
-      contenedor.innerText = "Buscando...";
+      contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
 
       try {
         const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
@@ -220,18 +234,19 @@
       const statusBox = document.getElementById("status-equipo");
       const obsBox = document.getElementById("observaciones-equipo");
       const alerta = document.getElementById("alerta-ingreso");
-      const alertaCarga = document.getElementById("alerta-carga");
+      const alertaAmarilla = document.getElementById("alerta-carga-extra");
 
       if (!id) {
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "";
         alerta.style.display = "none";
-        alertaCarga.style.display = "none";
+        alertaAmarilla.style.display = "none";
         return;
       }
 
-      familiaBox.innerText = statusBox.innerText = obsBox.innerText = "Buscando...";
+      const loading = '<span class="spinner"></span>Buscando...';
+      familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
       alerta.style.display = "none";
-      alertaCarga.style.display = "none";
+      alertaAmarilla.style.display = "none";
 
       try {
         const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
@@ -247,9 +262,7 @@
           if (status === "operativo") {
             statusBox.innerText = "❌ No habilitado";
             alerta.style.display = "block";
-          } else if (status === "solo combustible o batería") {
-            statusBox.innerText = "⚠️ Habilitado condicional";
-            alertaCarga.style.display = "block";
+            alertaAmarilla.style.display = "block";
           } else {
             statusBox.innerText = "✅ Habilitado";
           }
@@ -257,7 +270,7 @@
       } catch {
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error";
         alerta.style.display = "none";
-        alertaCarga.style.display = "none";
+        alertaAmarilla.style.display = "none";
       }
     }
 
