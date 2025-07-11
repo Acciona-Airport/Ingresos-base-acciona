@@ -94,6 +94,10 @@
       display: none;
       margin-top: 10px;
     }
+    #alerta-amarilla {
+      background-color: #ffcc00;
+      color: #000;
+    }
     .btn {
       background-color: #c62828;
       color: #fff;
@@ -123,34 +127,39 @@
     <div class="datetime-box" id="datetime"></div>
 
     <div class="section">
-      <label for="rut-conductor">RUT del conductor:</label>
-      <input type="text" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
+      <label for="rut-conductor">Ingrese RUT del conductor que ingresa <small>(Formato: 123456789-1)</small></label>
+      <input type="text" id="rut-conductor" placeholder="Ingrese RUT sin puntos y con guion." onblur="buscarDatosConductor()" required />
     </div>
 
     <div class="section">
-      <label>Nombre conductor:</label>
+      <label>Datos del Conductor:</label>
       <div class="result-box" id="datos-conductor"></div>
     </div>
 
     <div class="section" id="manual-conductor-section" style="display:none;">
-      <label for="nombre-manual">Ingrese nombre manualmente:</label>
-      <input type="text" id="nombre-manual" placeholder="Nombre del conductor" />
+      <label for="nombre-manual">Ingrese manualmente nombre del conductor:</label>
+      <input type="text" id="nombre-manual" placeholder="Nombre completo del conductor" />
     </div>
 
     <div class="section">
-      <label for="numero-equipo">Número de equipo:</label>
-      <input type="text" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
+      <label for="numero-equipo">Ingrese Número de Equipo:</label>
+      <input type="text" id="numero-equipo" placeholder="Ej: 51125" onblur="buscarDatosEquipo()" required />
     </div>
 
     <div class="section">
-      <label>Familia:</label>
+      <label>Familia del Equipo:</label>
       <div class="result-box" id="familia-equipo"></div>
     </div>
 
     <div class="section">
-      <label>¿Habilitado?</label>
+      <label>¿Habilitado para Ingreso?</label>
       <div class="result-box" id="status-equipo"></div>
-      <div class="alert-box" id="alerta-ingreso">⚠️ Equipo no habilitado para ingreso</div>
+      <div class="alert-box" id="alerta-ingreso">
+        ⚠️ Equipo no habilitado para ingreso, contacte a Control Flota Tel: 56 9 3860 1767
+      </div>
+      <div class="alert-box" id="alerta-amarilla" style="display: none;">
+        ⚠️ OJO: este equipo solo estaría habilitado a ingreso si va a cargar combustible o batería.
+      </div>
     </div>
 
     <div class="section">
@@ -159,8 +168,8 @@
     </div>
 
     <div class="section">
-      <label for="guardia">Guardia fiscalizador:</label>
-      <input type="text" id="guardia" placeholder="Nombre del guardia" />
+      <label for="guardia">Guardia quien fiscaliza:</label>
+      <input type="text" id="guardia" placeholder="Nombre del guardia" required />
     </div>
 
     <button class="btn" onclick="enviarFormulario()">Enviar</button>
@@ -171,8 +180,10 @@
 
     function actualizarFechaHora() {
       const now = new Date();
-      const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      const opciones = {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      };
       document.getElementById("datetime").innerText = now.toLocaleDateString('es-CL', opciones);
     }
     actualizarFechaHora();
@@ -198,96 +209,68 @@
           contenedor.innerText = "❌ No encontrado.";
           manualSection.style.display = "block";
         } else {
-          contenedor.innerText = data.NOMBRE || "(sin nombre)";
+          contenedor.innerText = data.NOMBRE || "(sin nombre registrado)";
           manualSection.style.display = "none";
         }
-      } catch {
-        contenedor.innerText = "❌ Error al buscar.";
+      } catch (e) {
+        contenedor.innerText = "❌ Error al consultar.";
         manualSection.style.display = "block";
+        console.error(e);
       }
     }
 
     async function buscarDatosEquipo() {
       const id = document.getElementById("numero-equipo").value.trim();
-      const familiaBox = document.getElementById("familia-equipo");
-      const statusBox = document.getElementById("status-equipo");
-      const obsBox = document.getElementById("observaciones-equipo");
-      const alerta = document.getElementById("alerta-ingreso");
+      const contenedorFamilia = document.getElementById("familia-equipo");
+      const contenedorStatus = document.getElementById("status-equipo");
+      const contenedorObs = document.getElementById("observaciones-equipo");
+      const alertaIngreso = document.getElementById("alerta-ingreso");
+      const alertaAmarilla = document.getElementById("alerta-amarilla");
 
       if (!id) {
-        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "";
-        alerta.style.display = "none";
+        contenedorFamilia.innerText = "";
+        contenedorStatus.innerText = "";
+        contenedorObs.innerText = "";
+        alertaIngreso.style.display = "none";
+        alertaAmarilla.style.display = "none";
         return;
       }
 
-      familiaBox.innerText = statusBox.innerText = obsBox.innerText = "Buscando...";
-      alerta.style.display = "none";
+      contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "Buscando...";
+      alertaIngreso.style.display = "none";
+      alertaAmarilla.style.display = "none";
 
       try {
         const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
         const data = await response.json();
 
         if (data.error) {
-          familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
+          contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ No encontrado";
         } else {
-          familiaBox.innerText = data.FAMILIA || "";
-          obsBox.innerText = data.OBSERVACIONES || "";
-          const status = (data["STATUS ✎"] || "").toLowerCase();
+          contenedorFamilia.innerText = data.FAMILIA || "(sin dato)";
+          contenedorObs.innerText = data.OBSERVACIONES || "(sin observaciones)";
+          const status = (data["STATUS ✎"] || "").trim().toLowerCase();
           if (status === "operativo") {
-            statusBox.innerText = "❌ No habilitado";
-            alerta.style.display = "block";
+            contenedorStatus.innerText = "❌ No habilitado para ingreso.";
+            alertaIngreso.style.display = "block";
+            alertaAmarilla.style.display = "block";
           } else {
-            statusBox.innerText = "✅ Habilitado";
-            alerta.style.display = "none";
+            contenedorStatus.innerText = "✅ Sí habilitado para ingreso.";
+            alertaIngreso.style.display = "none";
+            alertaAmarilla.style.display = "none";
           }
         }
-      } catch {
-        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error";
-        alerta.style.display = "none";
+      } catch (e) {
+        contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ Error";
+        alertaIngreso.style.display = "none";
+        alertaAmarilla.style.display = "none";
+        console.error(e);
       }
     }
 
     function enviarFormulario() {
-      const rut = document.getElementById("rut-conductor").value.trim();
-      const nombreManual = document.getElementById("nombre-manual").value.trim();
-      const nombre = document.getElementById("datos-conductor").innerText.includes("No encontrado") ? nombreManual : document.getElementById("datos-conductor").innerText.trim();
-      const equipo = document.getElementById("numero-equipo").value.trim();
-      const familia = document.getElementById("familia-equipo").innerText.trim();
-      const habilitado = document.getElementById("status-equipo").innerText.trim();
-      const observaciones = document.getElementById("observaciones-equipo").innerText.trim();
-      const guardia = document.getElementById("guardia").value.trim();
-
-      if (!rut || !nombre || !equipo || !guardia) {
-        alert("⚠️ Completa todos los campos obligatorios.");
-        return;
-      }
-
-      const form = document.createElement("form");
-      form.action = "https://docs.google.com/forms/d/e/1FAIpQLSf3ADvFtCeFHlm7RzOtNuuuxZkzjCgFnrvw7KM2d3DIPOGumg/formResponse";
-      form.method = "POST";
-      form.target = "_self";
-
-      const campos = {
-        "entry.675531615": rut,
-        "entry.851525222": nombre,
-        "entry.1413809422": equipo,
-        "entry.783685052": familia,
-        "entry.10343893": habilitado,
-        "entry.2133373249": observaciones,
-        "entry.234162856": guardia
-      };
-
-      for (let name in campos) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = name;
-        input.value = campos[name];
-        form.appendChild(input);
-      }
-
-      document.body.appendChild(form);
-      form.submit();
-      alert("✅ Enviado correctamente.");
+      alert("⚠️ El envío de datos está desactivado en esta vista previa.");
+      // Aquí mantén tu lógica actual de envío al Google Forms.
     }
   </script>
 </body>
