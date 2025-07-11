@@ -61,24 +61,24 @@
       font-size: 14px;
     }
 
-    .section > * {
-      max-width: 100%;
+    .section {
+      margin-bottom: 20px;
     }
 
-    input, textarea, .result-box {
+    .input-estilo {
       width: 100%;
-      padding: 24px 10px;
-      margin-top: 5px;
+      padding: 18px 12px;
       border-radius: 6px;
       border: 1px solid #666;
       font-size: 16px;
       background-color: #1e1e1e;
       color: #fff;
-      transition: border-color 0.3s, box-shadow 0.3s;
       box-sizing: border-box;
+      line-height: 1.4;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
 
-    input:focus, textarea:focus {
+    .input-estilo:focus {
       border-color: #c62828;
       box-shadow: 0 0 5px rgba(198, 40, 40, 0.5);
       outline: none;
@@ -94,10 +94,6 @@
       font-weight: bold;
       color: #f0f0f0;
       font-size: 14px;
-    }
-
-    .section {
-      margin-bottom: 20px;
     }
 
     .alert-box {
@@ -184,34 +180,34 @@
 
     <div class="section">
       <label for="rut-conductor">RUT del conductor:</label>
-      <input type="text" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
+      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
     </div>
 
     <div class="section">
       <label>Nombre conductor:</label>
-      <div class="result-box" id="datos-conductor"></div>
+      <div class="input-estilo" id="datos-conductor"></div>
     </div>
 
     <div class="section" id="manual-conductor-section" style="display:none;">
       <label for="nombre-manual">Ingrese nombre manualmente:</label>
-      <input type="text" id="nombre-manual" placeholder="Nombre del conductor" />
+      <input type="text" class="input-estilo" id="nombre-manual" placeholder="Nombre del conductor" />
     </div>
 
     <div class="section">
       <label for="numero-equipo">Número de equipo:</label>
-      <input type="text" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
+      <input type="text" class="input-estilo" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
     </div>
 
     <div class="section">
       <label>Familia:</label>
-      <div class="result-box" id="familia-equipo"></div>
+      <div class="input-estilo" id="familia-equipo"></div>
     </div>
 
     <div class="section">
       <label>¿Habilitado?</label>
-      <div class="result-box" id="status-equipo"></div>
-      <div class="alert-box alert-red" id="alerta-ingreso"> ❌ Equipo no habilitado para ingreso, 
-           contacte a Control Flota 📞 Tel: 56 9 3860 1767.
+      <div class="input-estilo" id="status-equipo"></div>
+      <div class="alert-box alert-red" id="alerta-ingreso">
+        ❌ Equipo no habilitado para ingreso, contacte a Control Flota 📞 Tel: 56 9 3860 1767.
       </div>
       <div class="alert-box alert-yellow" id="alerta-carga-extra">
         <span class="emoji-alert">⚠️</span>Ojo: Este equipo estaría habilitado solo a ingresar a cargar combustible o carga eléctrica.
@@ -220,12 +216,12 @@
 
     <div class="section">
       <label>Observaciones:</label>
-      <div class="result-box" id="observaciones-equipo"></div>
+      <div class="input-estilo" id="observaciones-equipo"></div>
     </div>
 
     <div class="section">
       <label for="guardia">Guardia fiscalizador:</label>
-      <input type="text" id="guardia" placeholder="Nombre del guardia" />
+      <input type="text" class="input-estilo" id="guardia" placeholder="Nombre del guardia" />
     </div>
 
     <button class="btn" onclick="enviarFormulario()">Enviar</button>
