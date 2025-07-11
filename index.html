@@ -20,7 +20,7 @@
       padding: 30px;
       border-radius: 18px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      max-width: 700px;
+      max-width: 600px;
       width: 100%;
       border: 1px solid #555;
     }
@@ -31,6 +31,15 @@
     }
     .logo {
       max-width: 140px;
+      padding: 8px;
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.05);
+      transition: transform 0.3s ease;
+    }
+    .logo:hover {
+      transform: scale(1.03);
     }
     h1 {
       font-size: 24px;
@@ -44,7 +53,7 @@
       font-weight: bold;
       color: #ddd;
     }
-    input {
+    input, textarea {
       width: 100%;
       padding: 10px;
       margin-top: 6px;
@@ -53,6 +62,37 @@
       font-size: 14px;
       background-color: #1e1e1e;
       color: #fff;
+    }
+    .datetime-box {
+      background-color: #444;
+      border: 1px solid #666;
+      padding: 12px;
+      text-align: center;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #f0f0f0;
+    }
+    .section {
+      margin-bottom: 25px;
+    }
+    .result-box {
+      min-height: 40px;
+      border: 1px dashed #666;
+      padding: 10px;
+      background-color: #1a1a1a;
+      color: #eee;
+      border-radius: 6px;
+    }
+    .alert-box {
+      background-color: #a30000;
+      color: #fff;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+      margin-top: 10px;
     }
     .btn {
       background-color: #c62828;
@@ -70,35 +110,53 @@
       background-color: #b71c1c;
       transform: scale(1.02);
     }
-
-    /* Estilos para la tabla oculta */
     .tabla-secreta {
+      margin-top: 80px;
       color: white;
-      margin-top: 100px; /* la separa del formulario */
-      max-width: 100%;
-      overflow-x: auto;
+      display: none;
+      max-width: 95%;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
-      background-color: #1e1e1e;
+      background-color: #1a1a1a;
       font-size: 14px;
     }
-
     th, td {
       padding: 6px 10px;
       border: 1px solid #555;
       text-align: left;
     }
-
     th {
       background-color: #444;
     }
-
-    /* Si deseas ocultarla totalmente, puedes agregar: display: none; */
-    .oculta {
+    .clave-container {
+      margin-top: 40px;
+      text-align: center;
+    }
+    #clave {
+      padding: 8px;
+      font-size: 14px;
+      width: 220px;
+      border-radius: 6px;
+      border: 1px solid #777;
+      background-color: #1e1e1e;
+      color: white;
+    }
+    #btn-descargar {
+      margin-top: 12px;
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: none;
+      background-color: #666;
+      color: white;
+      cursor: pointer;
       display: none;
+      transition: 0.3s;
+    }
+    #btn-descargar:hover {
+      background-color: #888;
     }
   </style>
 </head>
@@ -108,34 +166,63 @@
       <img class="logo" src="https://raw.githubusercontent.com/acciona-airport/Zarpes-acciona-aero/main/LogoAcciona2.png" alt="Logo Acciona" />
     </div>
 
-    <h1>Formulario de Ingreso de Equipos</h1>
+    <h1>Formulario de Ingreso de Equipos (Base Acciona)</h1>
 
-    <label for="rut-conductor">RUT del conductor</label>
-    <input type="text" id="rut-conductor" required />
+    <div class="datetime-box" id="datetime"></div>
 
-    <label for="nombre">Nombre del conductor</label>
-    <input type="text" id="nombre" required />
+    <div class="section">
+      <label for="rut-conductor">Ingrese RUT del conductor que ingresa <small>(Formato: 123456789-1)</small></label>
+      <input type="text" id="rut-conductor" placeholder="Ingrese RUT sin puntos y con guion." onblur="buscarDatosConductor()" required />
+    </div>
 
-    <label for="numero-equipo">Número de equipo</label>
-    <input type="text" id="numero-equipo" required />
+    <div class="section">
+      <label>Datos del Conductor:</label>
+      <div class="result-box" id="datos-conductor"></div>
+    </div>
 
-    <label for="familia">Familia del equipo</label>
-    <input type="text" id="familia" />
+    <div class="section" id="manual-conductor-section" style="display:none;">
+      <label for="nombre-manual">Ingrese manualmente nombre del conductor:</label>
+      <input type="text" id="nombre-manual" placeholder="Nombre completo del conductor" />
+    </div>
 
-    <label for="habilitado">Habilitado para ingreso</label>
-    <input type="text" id="habilitado" />
+    <div class="section">
+      <label for="numero-equipo">Ingrese Número de Equipo:</label>
+      <input type="text" id="numero-equipo" placeholder="Ej: 51125" onblur="buscarDatosEquipo()" required />
+    </div>
 
-    <label for="observaciones">Observaciones</label>
-    <input type="text" id="observaciones" />
+    <div class="section">
+      <label>Familia del Equipo:</label>
+      <div class="result-box" id="familia-equipo"></div>
+    </div>
 
-    <label for="guardia">Guardia quien fiscaliza</label>
-    <input type="text" id="guardia" required />
+    <div class="section">
+      <label>¿Habilitado para Ingreso?</label>
+      <div class="result-box" id="status-equipo"></div>
+      <div class="alert-box" id="alerta-ingreso">⚠️ Equipo no habilitado para ingreso. Contacte a Control Flota: +56 9 3860 1767</div>
+    </div>
 
-    <button class="btn" onclick="guardarEnTabla()">Enviar</button>
+    <div class="section">
+      <label>Observaciones:</label>
+      <div class="result-box" id="observaciones-equipo"></div>
+    </div>
+
+    <div class="section">
+      <label for="guardia">Guardia quien fiscaliza:</label>
+      <input type="text" id="guardia" placeholder="Nombre del guardia" required />
+    </div>
+
+    <button class="btn" onclick="enviarFormulario()">Enviar</button>
   </div>
 
-  <!-- Tabla secreta más abajo -->
-  <div class="tabla-secreta">
+  <!-- CLAVE Y BOTÓN DESCARGA -->
+  <div class="clave-container">
+    <input type="password" id="clave" placeholder="🔒 Ingrese clave para exportar" />
+    <br>
+    <button id="btn-descargar" onclick="exportarCSV()">⬇ Descargar CSV</button>
+  </div>
+
+  <!-- TABLA OCULTA -->
+  <div class="tabla-secreta" id="contenedor-tabla">
     <table id="tabla-datos">
       <thead>
         <tr>
@@ -154,29 +241,120 @@
   </div>
 
   <script>
-    function guardarEnTabla() {
-      const rut = document.getElementById("rut-conductor").value.trim();
-      const nombre = document.getElementById("nombre").value.trim();
-      const equipo = document.getElementById("numero-equipo").value.trim();
-      const familia = document.getElementById("familia").value.trim();
-      const habilitado = document.getElementById("habilitado").value.trim();
-      const observaciones = document.getElementById("observaciones").value.trim();
-      const guardia = document.getElementById("guardia").value.trim();
+    const CLAVE_CORRECTA = "26027678";
 
-      if (!rut || !nombre || !equipo || !guardia) {
-        alert("⚠️ Completa los campos obligatorios: RUT, Nombre, Equipo, Guardia.");
+    document.getElementById("clave").addEventListener("input", function () {
+      const clave = this.value.trim();
+      const boton = document.getElementById("btn-descargar");
+      const tabla = document.getElementById("contenedor-tabla");
+      if (clave === CLAVE_CORRECTA) {
+        boton.style.display = "inline-block";
+        tabla.style.display = "block";
+      } else {
+        boton.style.display = "none";
+        tabla.style.display = "none";
+      }
+    });
+
+    function actualizarFechaHora() {
+      const now = new Date();
+      const opciones = {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      };
+      document.getElementById("datetime").innerText = now.toLocaleDateString('es-CL', opciones);
+    }
+    actualizarFechaHora();
+
+    async function buscarDatosConductor() {
+      const rut = document.getElementById("rut-conductor").value.trim();
+      const contenedor = document.getElementById("datos-conductor");
+      const manualSection = document.getElementById("manual-conductor-section");
+      if (!rut) {
+        contenedor.innerText = "";
+        manualSection.style.display = "none";
+        return;
+      }
+      contenedor.innerText = "Buscando...";
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=personal&id=" + encodeURIComponent(rut));
+        const data = await response.json();
+        if (data.error) {
+          contenedor.innerText = "❌ No encontrado.";
+          manualSection.style.display = "block";
+        } else {
+          contenedor.innerText = data.NOMBRE || "(sin nombre registrado)";
+          manualSection.style.display = "none";
+        }
+      } catch (e) {
+        contenedor.innerText = "❌ Error al consultar.";
+        manualSection.style.display = "block";
+        console.error(e);
+      }
+    }
+
+    async function buscarDatosEquipo() {
+      const id = document.getElementById("numero-equipo").value.trim();
+      const contenedorFamilia = document.getElementById("familia-equipo");
+      const contenedorStatus = document.getElementById("status-equipo");
+      const contenedorObs = document.getElementById("observaciones-equipo");
+      const alertaIngreso = document.getElementById("alerta-ingreso");
+      if (!id) {
+        contenedorFamilia.innerText = "";
+        contenedorStatus.innerText = "";
+        contenedorObs.innerText = "";
+        alertaIngreso.style.display = "none";
+        return;
+      }
+      contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "Buscando...";
+      alertaIngreso.style.display = "none";
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=equipo&id=" + encodeURIComponent(id));
+        const data = await response.json();
+        if (data.error) {
+          contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ No encontrado";
+        } else {
+          contenedorFamilia.innerText = data.FAMILIA || "(sin dato)";
+          contenedorObs.innerText = data.OBSERVACIONES || "(sin observaciones)";
+          const status = (data["STATUS ✎"] || "").trim().toLowerCase();
+          if (status === "operativo") {
+            contenedorStatus.innerText = "❌ No habilitado para ingreso.";
+            alertaIngreso.style.display = "block";
+          } else {
+            contenedorStatus.innerText = "✅ Sí habilitado para ingreso.";
+            alertaIngreso.style.display = "none";
+          }
+        }
+      } catch (e) {
+        contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ Error";
+        alertaIngreso.style.display = "none";
+        console.error(e);
+      }
+    }
+
+    function enviarFormulario() {
+      const rut = document.getElementById("rut-conductor").value.trim();
+      const nombreManual = document.getElementById("nombre-manual").value.trim();
+      const datosConductor = document.getElementById("datos-conductor").innerText.trim();
+      const equipo = document.getElementById("numero-equipo").value.trim();
+      const guardia = document.getElementById("guardia").value.trim();
+      const familia = document.getElementById("familia-equipo").innerText.trim();
+      const habilitado = document.getElementById("status-equipo").innerText.trim();
+      const observaciones = document.getElementById("observaciones-equipo").innerText.trim();
+
+      if (!rut || !equipo || !guardia || (datosConductor.includes("No encontrado") && !nombreManual)) {
+        alert("⚠️ Completa todos los campos obligatorios.");
         return;
       }
 
       const tabla = document.querySelector("#tabla-datos tbody");
       const fila = document.createElement("tr");
-
       const fecha = new Date().toLocaleString("es-CL");
 
       fila.innerHTML = `
         <td>${fecha}</td>
         <td>${rut}</td>
-        <td>${nombre}</td>
+        <td>${datosConductor.includes("No encontrado") ? nombreManual : datosConductor}</td>
         <td>${equipo}</td>
         <td>${familia}</td>
         <td>${habilitado}</td>
@@ -185,14 +363,24 @@
       `;
       tabla.appendChild(fila);
 
-      // Limpiar formulario
-      document.getElementById("rut-conductor").value = "";
-      document.getElementById("nombre").value = "";
-      document.getElementById("numero-equipo").value = "";
-      document.getElementById("familia").value = "";
-      document.getElementById("habilitado").value = "";
-      document.getElementById("observaciones").value = "";
-      document.getElementById("guardia").value = "";
+      alert("✅ Datos registrados localmente.");
+    }
+
+    function exportarCSV() {
+      const tabla = document.querySelector("#tabla-datos");
+      let csv = "";
+      for (let fila of tabla.rows) {
+        const datos = Array.from(fila.cells).map(cell => `"${cell.innerText.replace(/"/g, '""')}"`);
+        csv += datos.join(",") + "\n";
+      }
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.setAttribute("href", url);
+      enlace.setAttribute("download", "ingreso_equipos.csv");
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
     }
   </script>
 </body>
