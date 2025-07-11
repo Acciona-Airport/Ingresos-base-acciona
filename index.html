@@ -110,7 +110,6 @@
       background-color: #b71c1c;
       transform: scale(1.02);
     }
-
     #tabla-container {
       display: none;
       margin-top: 40px;
@@ -118,7 +117,6 @@
       width: 95%;
       color: white;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -132,18 +130,15 @@
     th {
       background-color: #444;
     }
-
     .botones-accion {
       display: flex;
       gap: 10px;
       margin-top: 15px;
     }
-
     .clave-section {
       margin-top: 40px;
       text-align: center;
     }
-
     .clave-input {
       padding: 8px;
       border-radius: 6px;
@@ -152,7 +147,6 @@
       background-color: #222;
       color: #fff;
     }
-
     .boton-clave {
       margin-left: 10px;
       padding: 8px 12px;
@@ -162,7 +156,6 @@
       color: #fff;
       cursor: pointer;
     }
-
     .boton-clave:hover {
       background-color: #666;
     }
@@ -173,13 +166,12 @@
     <div class="logo-wrapper">
       <img class="logo" src="https://raw.githubusercontent.com/acciona-airport/Zarpes-acciona-aero/main/LogoAcciona2.png" alt="Logo Acciona" />
     </div>
-
     <h1>Formulario de Ingreso de Equipos (Base Acciona)</h1>
     <div class="datetime-box" id="datetime"></div>
 
     <div class="section">
       <label for="rut-conductor">RUT del conductor <small>(123456789-1)</small></label>
-      <input type="text" id="rut-conductor" required />
+      <input type="text" id="rut-conductor" required onblur="buscarDatosConductor()" />
     </div>
 
     <div class="section">
@@ -194,7 +186,7 @@
 
     <div class="section">
       <label for="numero-equipo">Número de Equipo:</label>
-      <input type="text" id="numero-equipo" required />
+      <input type="text" id="numero-equipo" required onblur="buscarDatosEquipo()" />
     </div>
 
     <div class="section">
@@ -243,7 +235,6 @@
       </thead>
       <tbody></tbody>
     </table>
-
     <div class="botones-accion">
       <button onclick="exportarCSV()">⬇️ Exportar CSV</button>
       <button onclick="limpiarTabla()">🗑 Limpiar tabla</button>
@@ -251,6 +242,8 @@
   </div>
 
   <script>
+    const URL_GET = "https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec";
+
     function actualizarFechaHora() {
       const now = new Date();
       document.getElementById("datetime").innerText = now.toLocaleString("es-CL");
@@ -262,20 +255,59 @@
       datosGuardados.forEach(agregarFilaATabla);
     });
 
-    function agregarFilaATabla(datos) {
-      const tabla = document.querySelector("#tabla-datos tbody");
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${datos.fecha}</td>
-        <td>${datos.rut}</td>
-        <td>${datos.nombre}</td>
-        <td>${datos.equipo}</td>
-        <td>${datos.familia}</td>
-        <td>${datos.habilitado}</td>
-        <td>${datos.observaciones}</td>
-        <td>${datos.guardia}</td>
-      `;
-      tabla.appendChild(fila);
+    async function buscarDatosConductor() {
+      const rut = document.getElementById("rut-conductor").value.trim();
+      const contenedor = document.getElementById("datos-conductor");
+      const manualSection = document.getElementById("manual-conductor-section");
+
+      if (!rut) return;
+
+      contenedor.innerText = "Buscando...";
+      try {
+        const res = await fetch(`${URL_GET}?tipo=personal&id=${encodeURIComponent(rut)}`);
+        const data = await res.json();
+        if (data.error) {
+          contenedor.innerText = "❌ No encontrado.";
+          manualSection.style.display = "block";
+        } else {
+          contenedor.innerText = data.NOMBRE || "(sin nombre)";
+          manualSection.style.display = "none";
+        }
+      } catch (e) {
+        contenedor.innerText = "❌ Error.";
+        manualSection.style.display = "block";
+      }
+    }
+
+    async function buscarDatosEquipo() {
+      const id = document.getElementById("numero-equipo").value.trim();
+      const contFam = document.getElementById("familia-equipo");
+      const contStat = document.getElementById("status-equipo");
+      const contObs = document.getElementById("observaciones-equipo");
+      const alerta = document.getElementById("alerta-ingreso");
+
+      if (!id) return;
+
+      contFam.innerText = contStat.innerText = contObs.innerText = "Buscando...";
+      alerta.style.display = "none";
+
+      try {
+        const res = await fetch(`${URL_GET}?tipo=equipo&id=${encodeURIComponent(id)}`);
+        const data = await res.json();
+
+        contFam.innerText = data.FAMILIA || "(sin dato)";
+        contObs.innerText = data.OBSERVACIONES || "(sin obs.)";
+        const status = (data["STATUS ✎"] || "").toLowerCase();
+
+        if (status === "operativo") {
+          contStat.innerText = "❌ No habilitado para ingreso.";
+          alerta.style.display = "block";
+        } else {
+          contStat.innerText = "✅ Sí habilitado para ingreso.";
+        }
+      } catch (e) {
+        contFam.innerText = contStat.innerText = contObs.innerText = "❌ Error";
+      }
     }
 
     function enviarFormulario() {
@@ -283,10 +315,10 @@
       const nombreManual = document.getElementById("nombre-manual").value.trim();
       const datosConductor = document.getElementById("datos-conductor").innerText.trim();
       const equipo = document.getElementById("numero-equipo").value.trim();
-      const guardia = document.getElementById("guardia").value.trim();
       const familia = document.getElementById("familia-equipo").innerText.trim();
       const habilitado = document.getElementById("status-equipo").innerText.trim();
       const observaciones = document.getElementById("observaciones-equipo").innerText.trim();
+      const guardia = document.getElementById("guardia").value.trim();
 
       if (!rut || !equipo || !guardia || (datosConductor.includes("No encontrado") && !nombreManual)) {
         alert("⚠️ Completa todos los campos obligatorios.");
@@ -306,6 +338,22 @@
       alert("✅ Datos registrados.");
     }
 
+    function agregarFilaATabla(datos) {
+      const tabla = document.querySelector("#tabla-datos tbody");
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${datos.fecha}</td>
+        <td>${datos.rut}</td>
+        <td>${datos.nombre}</td>
+        <td>${datos.equipo}</td>
+        <td>${datos.familia}</td>
+        <td>${datos.habilitado}</td>
+        <td>${datos.observaciones}</td>
+        <td>${datos.guardia}</td>
+      `;
+      tabla.appendChild(fila);
+    }
+
     function verificarClave() {
       const clave = document.getElementById("clave").value;
       if (clave === "26027678") {
@@ -318,28 +366,25 @@
     function exportarCSV() {
       const datos = JSON.parse(localStorage.getItem("tablaDatos")) || [];
       if (datos.length === 0) return alert("No hay datos para exportar.");
-
       const filas = [
         ["Fecha", "RUT", "Nombre", "Equipo", "Familia", "Habilitado", "Observaciones", "Guardia"],
         ...datos.map(d => [d.fecha, d.rut, d.nombre, d.equipo, d.familia, d.habilitado, d.observaciones, d.guardia])
       ];
-
       const csvContent = filas.map(f => f.join(",")).join("\n");
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "registros_ingreso_equipos.csv");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", "registros_ingreso.csv");
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
 
     function limpiarTabla() {
-      if (confirm("¿Estás seguro de borrar todos los datos? Esta acción no se puede deshacer.")) {
+      if (confirm("¿Seguro que quieres borrar todos los datos?")) {
         localStorage.removeItem("tablaDatos");
         document.querySelector("#tabla-datos tbody").innerHTML = "";
-        alert("🗑 Datos eliminados.");
+        alert("🗑 Tabla vaciada.");
       }
     }
   </script>
