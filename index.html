@@ -24,11 +24,22 @@
       width: 100%;
       border: 1px solid #555;
     }
+    .logo-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
     .logo {
-      display: block;
-      margin: 0 auto 20px;
-      max-width: 140px;
-      filter: drop-shadow(0 0 3px rgba(255,255,255,0.1));
+      max-width: 120px;
+      padding: 12px;
+      background-color: rgba(0, 0, 0, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+      transition: transform 0.3s ease;
+    }
+    .logo:hover {
+      transform: scale(1.05);
     }
     h1 {
       font-size: 24px;
@@ -93,7 +104,10 @@
 </head>
 <body>
   <div class="container">
-    <img class="logo" src="https://raw.githubusercontent.com/acciona-airport/Zarpes-acciona-aero/main/LogoAcciona2.png" alt="Logo Acciona" />
+    <div class="logo-wrapper">
+      <img class="logo" src="https://raw.githubusercontent.com/acciona-airport/Zarpes-acciona-aero/main/LogoAcciona2.png" alt="Logo Acciona" />
+    </div>
+
     <h1>Formulario de Ingreso de Equipos</h1>
 
     <div class="datetime-box" id="datetime"></div>
