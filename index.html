@@ -66,39 +66,31 @@
   <div class="container">
     <h1>Formulario de Ingreso de Equipos</h1>
 
-    <div class="datetime-box" id="datetime">
-      <!-- Fecha y hora se insertan automáticamente -->
-    </div>
+    <div class="datetime-box" id="datetime"></div>
 
     <div class="section">
-      <label for="rut-conductor">Ingrese RUT del conductor que ingresa</label>
-      <input type="text" id="rut-conductor" placeholder="Ej: 12345678K" />
+      <label for="rut-conductor">Ingrese RUT del conductor que ingresa <small>(Formato: 123456789-1)</small></label>
+      <input type="text" id="rut-conductor" placeholder="Ej: 123456789-1" onblur="buscarDatosConductor()" />
     </div>
 
     <div class="section">
       <label>Datos del Conductor</label>
-      <div class="result-box" id="datos-conductor">
-        <!-- Aquí se mostrarán datos traídos desde la planilla de Google -->
-      </div>
+      <div class="result-box" id="datos-conductor"></div>
     </div>
 
     <div class="section">
       <label for="numero-equipo">Ingrese Número de Equipo</label>
-      <input type="text" id="numero-equipo" placeholder="Ej: 00123" onblur="buscarFamiliaEquipo()" />
+      <input type="text" id="numero-equipo" placeholder="Ej: 00123" onblur="buscarDatosEquipo()" />
     </div>
 
     <div class="section">
       <label>Familia del Equipo</label>
-      <div class="result-box" id="familia-equipo">
-        <!-- Aquí se mostrará la familia del equipo -->
-      </div>
+      <div class="result-box" id="familia-equipo"></div>
     </div>
 
     <div class="section">
       <label>¿Habilitado para Ingreso?</label>
-      <div class="result-box">
-        <!-- Aquí se mostrará estado desde la planilla -->
-      </div>
+      <div class="result-box" id="status-equipo"></div>
     </div>
 
     <div class="section">
@@ -108,7 +100,6 @@
   </div>
 
   <script>
-    // Mostrar fecha y hora actual
     function actualizarFechaHora() {
       const now = new Date();
       const opciones = {
@@ -119,11 +110,11 @@
     }
     actualizarFechaHora();
 
-    async function buscarFamiliaEquipo() {
-      const input = document.getElementById("numero-equipo").value.trim();
-      const contenedor = document.getElementById("familia-equipo");
+    async function buscarDatosConductor() {
+      const rut = document.getElementById("rut-conductor").value.trim();
+      const contenedor = document.getElementById("datos-conductor");
 
-      if (!input) {
+      if (!rut) {
         contenedor.innerText = "";
         return;
       }
@@ -131,16 +122,48 @@
       contenedor.innerText = "Buscando...";
 
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbxjq5W7zHMAdseMsxXwcl0VP7FtNedbhCaPj7b0gwftQ_iYQdJ-4iOv9jgrQTK47-Ad3w/exec?id=" + encodeURIComponent(input));
+        const response = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=personal&id=" + encodeURIComponent(rut));
         const data = await response.json();
 
         if (data.error) {
           contenedor.innerText = "❌ No encontrado";
         } else {
-          contenedor.innerText = data.FAMILIA || "(sin información)";
+          contenedor.innerText = data.NOMBRE || "(sin nombre registrado)";
         }
       } catch (error) {
-        contenedor.innerText = "❌ Error en la consulta";
+        contenedor.innerText = "❌ Error al consultar";
+        console.error(error);
+      }
+    }
+
+    async function buscarDatosEquipo() {
+      const id = document.getElementById("numero-equipo").value.trim();
+      const contenedorFamilia = document.getElementById("familia-equipo");
+      const contenedorStatus = document.getElementById("status-equipo");
+
+      if (!id) {
+        contenedorFamilia.innerText = "";
+        contenedorStatus.innerText = "";
+        return;
+      }
+
+      contenedorFamilia.innerText = "Buscando...";
+      contenedorStatus.innerText = "Buscando...";
+
+      try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=equipo&id=" + encodeURIComponent(id));
+        const data = await response.json();
+
+        if (data.error) {
+          contenedorFamilia.innerText = "❌ No encontrado";
+          contenedorStatus.innerText = "❌ No encontrado";
+        } else {
+          contenedorFamilia.innerText = data.FAMILIA || "(sin dato)";
+          contenedorStatus.innerText = data["STATUS ✎"] || "(sin estado)";
+        }
+      } catch (error) {
+        contenedorFamilia.innerText = "❌ Error";
+        contenedorStatus.innerText = "❌ Error";
         console.error(error);
       }
     }
