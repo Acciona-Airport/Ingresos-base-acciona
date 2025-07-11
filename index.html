@@ -63,11 +63,15 @@
 
     .section {
       margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .input-estilo {
       width: 100%;
-      padding: 18px 12px;
+      max-width: 360px;
+      padding: 14px 12px;
       border-radius: 6px;
       border: 1px solid #666;
       font-size: 16px;
@@ -76,11 +80,6 @@
       box-sizing: border-box;
       line-height: 1.4;
       transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    .input-ajustado {
-      padding-top: 7px;
-      padding-bottom: 7px;
     }
 
     .input-estilo:focus {
@@ -110,6 +109,7 @@
       padding: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       font-size: 13px;
+      max-width: 360px;
     }
 
     .alert-red {
@@ -147,6 +147,7 @@
       font-size: 15px;
       transition: background-color 0.3s ease, transform 0.2s ease;
       width: 100%;
+      max-width: 360px;
       margin-top: 18px;
     }
 
@@ -185,7 +186,7 @@
 
     <div class="section">
       <label for="rut-conductor">RUT del conductor:</label>
-      <input type="text" class="input-estilo input-ajustado" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
+      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
     </div>
 
     <div class="section">
@@ -200,7 +201,7 @@
 
     <div class="section">
       <label for="numero-equipo">Número de equipo:</label>
-      <input type="text" class="input-estilo input-ajustado" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
+      <input type="text" class="input-estilo" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
     </div>
 
     <div class="section">
@@ -226,7 +227,7 @@
 
     <div class="section">
       <label for="guardia">Guardia fiscalizador:</label>
-      <input type="text" class="input-estilo input-ajustado" id="guardia" placeholder="Nombre del guardia" />
+      <input type="text" class="input-estilo" id="guardia" placeholder="Nombre del guardia" />
     </div>
 
     <button class="btn" onclick="enviarFormulario()">Enviar</button>
