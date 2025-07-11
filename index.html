@@ -100,6 +100,15 @@
       background-color: #ffc107;
       color: #000;
     }
+    .emoji-alert {
+      display: inline-block;
+      background-color: #ffc107;
+      border: 2px solid #000;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-weight: bold;
+      margin-right: 5px;
+    }
     .btn {
       background-color: #c62828;
       color: #fff;
@@ -170,8 +179,12 @@
     <div class="section">
       <label>¿Habilitado?</label>
       <div class="result-box" id="status-equipo"></div>
-      <div class="alert-box alert-red" id="alerta-ingreso"> ❌ Equipo no habilitado para ingreso, contacte a       Control Flota 📞 Tel: 56 9 3860 1767</div>
-      <div class="alert-box alert-yellow" id="alerta-carga-extra"> ⚠️ Ojo: Este equipo estaría habilitado solo a ingresar a Cargar combustible o Carga eléctrica.</div>
+      <div class="alert-box alert-red" id="alerta-ingreso">
+        ❌ Equipo no habilitado para ingreso,<br>contacte a Control Flota 📞 Tel: 56 9 3860 1767
+      </div>
+      <div class="alert-box alert-yellow" id="alerta-carga-extra">
+        <span class="emoji-alert">⚠️</span>Ojo: Este equipo estaría habilitado solo a ingresar a Cargar combustible o Carga eléctrica.
+      </div>
     </div>
 
     <div class="section">
