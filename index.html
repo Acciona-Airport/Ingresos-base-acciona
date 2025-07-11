@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ingreso de Equipos - Acciona</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
@@ -21,7 +25,7 @@
       padding: 25px;
       border-radius: 18px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      max-width: 500px;
+      max-width: 480px;
       width: 100%;
       border: 1px solid #555;
     }
@@ -67,25 +71,15 @@
 
     .input-estilo {
       width: 100%;
-      padding: 14px 12px;
+      min-height: 42px;
+      padding: 10px 12px;
       border-radius: 6px;
       border: 1px solid #666;
-      font-size: 16px;
+      font-size: 14px;
       background-color: #1e1e1e;
       color: #fff;
-      box-sizing: border-box;
       transition: border-color 0.3s, box-shadow 0.3s;
-      height: 45px; /* Fijar altura */
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-    }
-
-    .input-ajustado {
-      padding-top: 7px;
-      padding-bottom: 7px;
+      resize: none;
     }
 
     .input-estilo:focus {
@@ -127,19 +121,6 @@
       background-color: #fff3cd;
       color: #856404;
       border: 1px solid #ffeeba;
-      position: relative;
-      transition: all 0.3s ease;
-    }
-
-    .emoji-alert {
-      display: inline-block;
-      background-color: #ffc107;
-      border: 1px solid #000;
-      border-radius: 50%;
-      padding: 2px 5px;
-      font-weight: bold;
-      margin-right: 5px;
-      font-size: 12px;
     }
 
     .btn {
@@ -185,12 +166,11 @@
     </div>
 
     <h1>Formulario de Ingreso de Equipos (Base Acciona)</h1>
-
     <div class="datetime-box" id="datetime"></div>
 
     <div class="section">
       <label for="rut-conductor">RUT del conductor:</label>
-      <input type="text" class="input-estilo input-ajustado" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
+      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
     </div>
 
     <div class="section">
@@ -205,7 +185,7 @@
 
     <div class="section">
       <label for="numero-equipo">Número de equipo:</label>
-      <input type="text" class="input-estilo input-ajustado" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
+      <input type="text" class="input-estilo" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
     </div>
 
     <div class="section">
@@ -220,7 +200,7 @@
         ❌ Equipo no habilitado para ingreso, contacte a Control Flota 📞 Tel: 56 9 3860 1767.
       </div>
       <div class="alert-box alert-yellow" id="alerta-carga-extra">
-        <span class="emoji-alert">⚠️</span>Ojo: Este equipo estaría habilitado solo a ingresar a cargar combustible o carga eléctrica.
+        ⚠️ Ojo: Este equipo estaría habilitado solo a ingresar a cargar combustible o carga eléctrica.
       </div>
     </div>
 
@@ -231,7 +211,7 @@
 
     <div class="section">
       <label for="guardia">Guardia fiscalizador:</label>
-      <input type="text" class="input-estilo input-ajustado" id="guardia" placeholder="Nombre del guardia" />
+      <input type="text" class="input-estilo" id="guardia" placeholder="Nombre del guardia" />
     </div>
 
     <button class="btn" onclick="enviarFormulario()">Enviar</button>
@@ -242,8 +222,10 @@
 
     function actualizarFechaHora() {
       const now = new Date();
-      const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      const opciones = {
+        weekday: 'long', year: 'numeric', month: 'long',
+        day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+      };
       document.getElementById("datetime").innerText = now.toLocaleDateString('es-CL', opciones);
     }
     actualizarFechaHora();
