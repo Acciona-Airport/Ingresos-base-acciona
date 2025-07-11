@@ -53,7 +53,7 @@
       font-weight: bold;
       color: #ddd;
     }
-    input, textarea {
+    input {
       width: 100%;
       padding: 10px;
       margin-top: 6px;
@@ -169,6 +169,8 @@
   </div>
 
   <script>
+    const WEB_APP_URL = "TU_URL_WEB_APP_AQUI"; // ← reemplaza por tu URL real
+
     function actualizarFechaHora() {
       const now = new Date();
       document.getElementById("datetime").innerText = now.toLocaleString("es-CL");
@@ -184,7 +186,7 @@
 
       contenedor.innerText = "🔴 Buscando...";
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=personal&id=" + encodeURIComponent(rut));
+        const res = await fetch(WEB_APP_URL + "?tipo=personal&id=" + encodeURIComponent(rut));
         const data = await res.json();
         if (data.error) {
           contenedor.innerText = "❌ No encontrado.";
@@ -210,7 +212,7 @@
       alerta.style.display = "none";
 
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=equipo&id=" + encodeURIComponent(id));
+        const res = await fetch(WEB_APP_URL + "?tipo=equipo&id=" + encodeURIComponent(id));
         const data = await res.json();
 
         contFam.innerText = data.FAMILIA || "(sin dato)";
@@ -236,28 +238,38 @@
                     : document.getElementById("datos-conductor").innerText.trim();
       const equipo = document.getElementById("numero-equipo").value.trim();
       const familia = document.getElementById("familia-equipo").innerText.trim();
-      const status = document.getElementById("status-equipo").innerText.trim();
+      const habilitado = document.getElementById("status-equipo").innerText.trim();
       const obs = document.getElementById("observaciones-equipo").innerText.trim();
       const guardia = document.getElementById("guardia").value.trim();
 
-      if (!rut || !equipo || !guardia || !nombre) {
+      if (!rut || !nombre || !equipo || !guardia) {
         alert("⚠️ Completa todos los campos obligatorios.");
         return;
       }
 
-      const data = {
-        rut, nombre, equipo, familia, status, obs, guardia, timestamp: new Date().toISOString()
-      };
+      const formData = new URLSearchParams();
+      formData.append("rut", rut);
+      formData.append("nombre", nombre);
+      formData.append("equipo", equipo);
+      formData.append("familia", familia);
+      formData.append("habilitado", habilitado);
+      formData.append("observaciones", obs);
+      formData.append("guardia", guardia);
 
       try {
-        const res = await fetch("URL_DEL_SCRIPT_WEB_APP", {
+        const res = await fetch(WEB_APP_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData.toString()
         });
-        const result = await res.text();
-        alert("✅ Datos enviados correctamente.");
-        location.reload();
+
+        const text = await res.text();
+        if (text.trim() === "OK") {
+          alert("✅ Datos enviados correctamente.");
+          location.reload();
+        } else {
+          alert("❌ Error en el servidor: " + text);
+        }
       } catch (e) {
         alert("❌ Error al enviar.");
         console.error(e);
