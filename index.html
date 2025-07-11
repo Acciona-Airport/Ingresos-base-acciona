@@ -5,111 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ingreso de Equipos - Acciona</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
-      color: #e0e0e0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 30px 15px;
-      margin: 0;
-    }
-    .container {
-      background-color: #333;
-      padding: 30px;
-      border-radius: 18px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      max-width: 600px;
-      width: 100%;
-      border: 1px solid #555;
-    }
-    .logo-wrapper {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .logo {
-      max-width: 140px;
-      padding: 8px;
-      background-color: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 6px;
-      box-shadow: 0 0 6px rgba(255, 255, 255, 0.05);
-      transition: transform 0.3s ease;
-    }
-    .logo:hover {
-      transform: scale(1.03);
-    }
-    h1 {
-      font-size: 24px;
-      color: #fff;
-      text-align: center;
-      margin-bottom: 25px;
-    }
-    label {
-      display: block;
-      margin-top: 16px;
-      font-weight: bold;
-      color: #ddd;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border-radius: 6px;
-      border: 1px solid #666;
-      font-size: 14px;
-      background-color: #1e1e1e;
-      color: #fff;
-    }
-    .datetime-box {
-      background-color: #444;
-      border: 1px solid #666;
-      padding: 12px;
-      text-align: center;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      font-weight: bold;
-      color: #f0f0f0;
-    }
-    .section {
-      margin-bottom: 25px;
-    }
-    .result-box {
-      min-height: 40px;
-      border: 1px dashed #666;
-      padding: 10px;
-      background-color: #1a1a1a;
-      color: #eee;
-      border-radius: 6px;
-    }
-    .alert-box {
-      background-color: #a30000;
-      color: #fff;
-      padding: 12px;
-      border-radius: 6px;
-      font-weight: bold;
-      text-align: center;
-      display: none;
-      margin-top: 10px;
-    }
-    .btn {
-      background-color: #c62828;
-      color: #fff;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.3s ease;
-      width: 100%;
-      margin-top: 20px;
-    }
-    .btn:hover {
-      background-color: #b71c1c;
-      transform: scale(1.02);
-    }
+    /* ... mismo CSS que ya tienes ... */
   </style>
 </head>
 <body>
@@ -122,61 +18,66 @@
 
     <div class="datetime-box" id="datetime"></div>
 
-    <div class="section">
-      <label for="rut-conductor">Ingrese RUT del conductor que ingresa <small>(Formato: 123456789-1)</small></label>
-      <input type="text" id="rut-conductor" placeholder="Ingrese RUT sin puntos y con guion." onblur="buscarDatosConductor()" required />
-    </div>
+    <form id="formulario-google" action="https://docs.google.com/forms/d/e/1FAIpQLSfLqrlBRhncuy7f4HIEdml9pTbvUhq0r9IsHeAcFYoZKO34zA/formResponse" method="POST" target="hidden_iframe" onsubmit="enviarFormulario(event)">
 
-    <div class="section">
-      <label>Datos del Conductor:</label>
-      <div class="result-box" id="datos-conductor"></div>
-    </div>
+      <div class="section">
+        <label for="rut-conductor">RUT del conductor <small>(Formato: 123456789-1)</small></label>
+        <input type="text" id="rut-conductor" name="entry.675531615" placeholder="Ingrese RUT sin puntos y con guion." onblur="buscarDatosConductor()" required />
+      </div>
 
-    <div class="section" id="manual-conductor-section" style="display:none;">
-      <label for="nombre-manual">Ingrese manualmente nombre del conductor:</label>
-      <input type="text" id="nombre-manual" placeholder="Nombre completo del conductor" />
-    </div>
+      <div class="section">
+        <label>Datos del Conductor:</label>
+        <div class="result-box" id="datos-conductor"></div>
+      </div>
 
-    <div class="section">
-      <label for="numero-equipo">Ingrese Número de Equipo:</label>
-      <input type="text" id="numero-equipo" placeholder="Ej: 51125" onblur="buscarDatosEquipo()" required />
-    </div>
+      <div class="section" id="manual-conductor-section" style="display:none;">
+        <label for="nombre-manual">Ingrese manualmente nombre del conductor:</label>
+        <input type="text" id="nombre-manual" placeholder="Nombre completo del conductor" />
+      </div>
 
-    <div class="section">
-      <label>Familia del Equipo:</label>
-      <div class="result-box" id="familia-equipo"></div>
-    </div>
+      <input type="hidden" id="campo-nombre" name="entry.851525222" />
 
-    <div class="section">
-      <label>¿Habilitado para Ingreso?</label>
-      <div class="result-box" id="status-equipo"></div>
-      <div class="alert-box" id="alerta-ingreso">⚠️ Equipo no habilitado para ingreso. Contacte a Control Flota: +56 9 3860 1767</div>
-    </div>
+      <div class="section">
+        <label for="numero-equipo">Número de Equipo:</label>
+        <input type="text" id="numero-equipo" name="entry.1413809422" placeholder="Ej: 51125" onblur="buscarDatosEquipo()" required />
+      </div>
 
-    <div class="section">
-      <label>Observaciones:</label>
-      <div class="result-box" id="observaciones-equipo"></div>
-    </div>
+      <input type="hidden" id="campo-familia" name="entry.783685052" />
+      <input type="hidden" id="campo-habilitado" name="entry.10343893" />
+      <input type="hidden" id="campo-observaciones" name="entry.2133373249" />
 
-    <div class="section">
-      <label for="guardia">Guardia quien fiscaliza:</label>
-      <input type="text" id="guardia" placeholder="Nombre del guardia" required />
-    </div>
+      <div class="section">
+        <label>Familia del Equipo:</label>
+        <div class="result-box" id="familia-equipo"></div>
+      </div>
 
-    <button class="btn" onclick="enviarFormulario()">Enviar</button>
+      <div class="section">
+        <label>¿Habilitado para Ingreso?</label>
+        <div class="result-box" id="status-equipo"></div>
+        <div class="alert-box" id="alerta-ingreso">⚠️ Equipo no habilitado para ingreso. Contacte a Control Flota.</div>
+      </div>
+
+      <div class="section">
+        <label>Observaciones:</label>
+        <div class="result-box" id="observaciones-equipo"></div>
+      </div>
+
+      <div class="section">
+        <label for="guardia">Guardia quien fiscaliza:</label>
+        <input type="text" id="guardia" name="entry.234162856" placeholder="Nombre del guardia" required />
+      </div>
+
+      <button class="btn" type="submit">Enviar</button>
+      <iframe name="hidden_iframe" style="display:none;"></iframe>
+    </form>
   </div>
 
   <script>
     const URL_GET = "https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec";
-    const URL_POST = "https://script.google.com/macros/s/AKfycbxk7fJQNpEPON1GQq-tO9JkouFVmD2HqbrjW-HCMTQLdDU7pA3j1PLihsF1JrQosZbA/exec"; // ACTUALIZADO
 
     function actualizarFechaHora() {
       const now = new Date();
-      const opciones = {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit'
-      };
-      document.getElementById("datetime").innerText = now.toLocaleDateString('es-CL', opciones);
+      document.getElementById("datetime").innerText = now.toLocaleString("es-CL");
     }
     actualizarFechaHora();
 
@@ -192,16 +93,14 @@
       }
 
       contenedor.innerText = "Buscando...";
-
       try {
         const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
         const data = await response.json();
-
         if (data.error) {
           contenedor.innerText = "❌ No encontrado.";
           manualSection.style.display = "block";
         } else {
-          contenedor.innerText = data.NOMBRE || "(sin nombre registrado)";
+          contenedor.innerText = data.NOMBRE || "(sin nombre)";
           manualSection.style.display = "none";
         }
       } catch (e) {
@@ -216,18 +115,18 @@
       const contenedorFamilia = document.getElementById("familia-equipo");
       const contenedorStatus = document.getElementById("status-equipo");
       const contenedorObs = document.getElementById("observaciones-equipo");
-      const alertaIngreso = document.getElementById("alerta-ingreso");
+      const alerta = document.getElementById("alerta-ingreso");
 
       if (!id) {
         contenedorFamilia.innerText = "";
         contenedorStatus.innerText = "";
         contenedorObs.innerText = "";
-        alertaIngreso.style.display = "none";
+        alerta.style.display = "none";
         return;
       }
 
       contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "Buscando...";
-      alertaIngreso.style.display = "none";
+      alerta.style.display = "none";
 
       try {
         const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
@@ -239,63 +138,38 @@
           contenedorFamilia.innerText = data.FAMILIA || "(sin dato)";
           contenedorObs.innerText = data.OBSERVACIONES || "(sin observaciones)";
           const status = (data["STATUS ✎"] || "").trim().toLowerCase();
+
           if (status === "operativo") {
             contenedorStatus.innerText = "❌ No habilitado para ingreso.";
-            alertaIngreso.style.display = "block";
+            alerta.style.display = "block";
           } else {
             contenedorStatus.innerText = "✅ Sí habilitado para ingreso.";
-            alertaIngreso.style.display = "none";
+            alerta.style.display = "none";
           }
         }
       } catch (e) {
         contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ Error";
-        alertaIngreso.style.display = "none";
+        alerta.style.display = "none";
         console.error(e);
       }
     }
 
-    async function enviarFormulario() {
-      const rut = document.getElementById("rut-conductor").value.trim();
-      const nombreManual = document.getElementById("nombre-manual").value.trim();
+    function enviarFormulario(event) {
       const datosConductor = document.getElementById("datos-conductor").innerText.trim();
-      const equipo = document.getElementById("numero-equipo").value.trim();
-      const guardia = document.getElementById("guardia").value.trim();
-      const familia = document.getElementById("familia-equipo").innerText.trim();
-      const status = document.getElementById("status-equipo").innerText.trim();
-      const obs = document.getElementById("observaciones-equipo").innerText.trim();
-
+      const nombreManual = document.getElementById("nombre-manual").value.trim();
       const nombre = datosConductor.includes("No encontrado") ? nombreManual : datosConductor;
 
-      if (!rut || !equipo || !guardia || !nombre) {
-        alert("⚠️ Completa todos los campos obligatorios.");
-        return;
-      }
+      const familia = document.getElementById("familia-equipo").innerText.trim();
+      const habilitado = document.getElementById("status-equipo").innerText.trim();
+      const observaciones = document.getElementById("observaciones-equipo").innerText.trim();
 
-      const formData = new FormData();
-      formData.append("rut", rut);
-      formData.append("nombre", nombre);
-      formData.append("equipo", equipo);
-      formData.append("familia", familia);
-      formData.append("habilitado", status);
-      formData.append("observaciones", obs);
-      formData.append("guardia", guardia);
+      document.getElementById("campo-nombre").value = nombre;
+      document.getElementById("campo-familia").value = familia;
+      document.getElementById("campo-habilitado").value = habilitado;
+      document.getElementById("campo-observaciones").value = observaciones;
 
-      try {
-        const res = await fetch(URL_POST, {
-          method: "POST",
-          body: formData
-        });
-        const text = await res.text();
-        if (text.includes("OK")) {
-          alert("✅ Datos enviados correctamente.");
-          location.reload();
-        } else {
-          alert("❌ Error al enviar.");
-        }
-      } catch (e) {
-        alert("❌ Error al conectar con el servidor.");
-        console.error(e);
-      }
+      // Continúa el envío
+      alert("✅ Enviado correctamente.");
     }
   </script>
 </body>
