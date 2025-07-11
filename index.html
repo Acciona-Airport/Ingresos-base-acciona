@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Encuesta Estado Equipos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ingreso de Equipos - Acciona</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -20,175 +20,98 @@
       padding: 25px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(200, 0, 0, 0.1);
-      max-width: 800px;
+      max-width: 600px;
       width: 100%;
       border: 1px solid #f0c0c0;
     }
     h1 {
-      font-size: 20px;
+      font-size: 22px;
       color: #c80000;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
     label {
       display: block;
-      margin-top: 10px;
+      margin-top: 16px;
       font-weight: bold;
     }
-    input, select, textarea {
+    input, textarea {
       width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      margin-bottom: 12px;
+      padding: 10px;
+      margin-top: 6px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      font-size: 14px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
+    .datetime-box {
+      background-color: #fff0f0;
       border: 1px solid #ccc;
-      padding: 8px;
+      padding: 12px;
       text-align: center;
+      border-radius: 8px;
+      margin-bottom: 20px;
     }
-    th {
-      background-color: #f8dada;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #c80000;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 15px;
-    }
-    button:hover {
-      background-color: #a00000;
+    .section {
+      margin-bottom: 25px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Encuesta Estado de Equipos</h1>
+    <h1>Formulario de Ingreso de Equipos</h1>
 
-    <label for="rut">Ingrese su RUT</label>
-    <input type="text" id="rut" placeholder="Ej: 12345678K" />
+    <div class="datetime-box" id="datetime">
+      <!-- Fecha y hora se insertan automáticamente -->
+    </div>
 
-    <label for="equipo">Ingrese Número de Equipo</label>
-    <input type="text" id="equipo" placeholder="Ej: 00123" />
+    <div class="section">
+      <label for="rut-conductor">Ingrese RUT del conductor que ingresa</label>
+      <input type="text" id="rut-conductor" placeholder="Ej: 12345678K" />
+    </div>
 
-    <label for="region">Región</label>
-    <select id="region">
-      <option value="SCL">SCL</option>
-      <option value="MHC">MHC</option>
-      <option value="ZOS">ZOS</option>
-      <option value="ZAL">ZAL</option>
-      <option value="PNT">PNT</option>
-    </select>
+    <div class="section">
+      <label>Datos del Conductor</label>
+      <div style="min-height: 40px; border: 1px dashed #ccc; padding: 10px; background-color: #f9f9f9;">
+        <!-- Aquí se mostrarán datos traídos desde la planilla de Google -->
+      </div>
+    </div>
 
-    <label for="familia">Familia de Equipo</label>
-    <select id="familia">
-      <option>TRACTOR EQUIPAJE</option>
-      <option>PAYMOVER</option>
-      <option>TOWBARLESS</option>
-      <option>CARGOLOADER</option>
-      <option>CONVEYOR</option>
-      <option>CAMION/CARRO SERVICIO</option>
-      <option>GPU</option>
-      <option>ASU/ACU</option>
-      <option>CAMIONETAS DE APOYO</option>
-      <option>ESCALA MOTORIZADA</option>
-    </select>
+    <div class="section">
+      <label for="numero-equipo">Ingrese Número de Equipo</label>
+      <input type="text" id="numero-equipo" placeholder="Ej: 00123" />
+    </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Condición</th>
-          <th>SI</th>
-          <th>NO</th>
-        </tr>
-      </thead>
-      <tbody id="condiciones">
-        <!-- Se genera por JavaScript -->
-      </tbody>
-    </table>
+    <div class="section">
+      <label>Datos del Equipo</label>
+      <div style="min-height: 40px; border: 1px dashed #ccc; padding: 10px; background-color: #f9f9f9;">
+        <!-- Aquí se mostrarán datos traídos desde la planilla de Google -->
+      </div>
+    </div>
 
-    <label for="observaciones">Observaciones Adicionales</label>
-    <textarea id="observaciones" rows="4" placeholder="Escriba aquí..."></textarea>
+    <div class="section">
+      <label>¿Habilitado para Ingreso?</label>
+      <div style="min-height: 40px; border: 1px dashed #ccc; padding: 10px; background-color: #f9f9f9;">
+        <!-- Aquí se mostrará estado desde la planilla -->
+      </div>
+    </div>
 
-    <button onclick="generarTabla()">Enviar y Generar Tabla</button>
-
-    <pre id="output" style="margin-top: 20px; white-space: pre-wrap;"></pre>
+    <div class="section">
+      <label for="guardia">Guardia quien fiscaliza</label>
+      <input type="text" id="guardia" placeholder="Nombre del guardia" />
+    </div>
   </div>
 
   <script>
-    const condiciones = [
-      "PAV OPERATIVO",
-      "EXTINTOR OPERATIVO",
-      "ASIENTOS EN BUEN ESTADO",
-      "CINTURON DE SEGURIDAD OPERATIVO",
-      "NEUMATICOS OPERATIVOS",
-      "DIRECCION OPERATIVA",
-      "ESPEJOS OPERATIVOS",
-      "CUENTA CON STICKER DE DESCONEXION GPU (TRACTORISTAS EQUIPAJE)",
-      "MUELA DE ENGANCHE OPERATIVA",
-      "PANEL ENCENDIDO SIN ALERTAS O CODIGOS",
-      "LUCES Y BALIZAS OPERATIVAS",
-      "EQUIPO SIN FILTRACIONES DE AGUA O ACEITE",
-      "LIMPIA PARABRIZAS OPERATIVO",
-      "FRENOS OPERATIVOS",
-      "TEMPERATURA NORMAL"
-    ];
-
-    const tbody = document.getElementById("condiciones");
-    condiciones.forEach((cond, idx) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${cond}</td>
-        <td><input type="radio" name="cond${idx}" value="SI" required></td>
-        <td><input type="radio" name="cond${idx}" value="NO"></td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    function generarTabla() {
-      const data = {
-        rut: document.getElementById("rut").value,
-        equipo: document.getElementById("equipo").value,
-        region: document.getElementById("region").value,
-        familia: document.getElementById("familia").value,
-        condiciones: [],
-        observaciones: document.getElementById("observaciones").value
+    // Mostrar fecha y hora actual
+    function actualizarFechaHora() {
+      const now = new Date();
+      const opciones = {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
       };
-
-      condiciones.forEach((_, idx) => {
-        const radios = document.getElementsByName("cond" + idx);
-        for (const radio of radios) {
-          if (radio.checked) {
-            data.condiciones.push(radio.value);
-            break;
-          }
-        }
-      });
-
-      const csv = [
-        ["RUT", "EQUIPO", "REGION", "FAMILIA", ...condiciones, "OBSERVACIONES"].join(","),
-        [
-          data.rut,
-          data.equipo,
-          data.region,
-          data.familia,
-          ...data.condiciones,
-          '"' + data.observaciones.replaceAll('"', '""') + '"'
-        ].join(",")
-      ].join("\n");
-
-      document.getElementById("output").textContent = csv;
+      document.getElementById("datetime").innerText = now.toLocaleDateString('es-CL', opciones);
     }
+    actualizarFechaHora();
   </script>
 </body>
 </html>
