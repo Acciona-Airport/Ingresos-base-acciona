@@ -110,6 +110,18 @@
       background-color: #b71c1c;
       transform: scale(1.02);
     }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -163,12 +175,13 @@
       <input type="text" id="guardia" placeholder="Nombre del guardia" required />
     </div>
 
-    <button class="btn" onclick="enviarFormulario()">Enviar</button>
+    <button class="btn" id="submit-btn" onclick="enviarFormulario()">Enviar</button>
   </div>
 
   <script>
-    const URL_GET = "https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec";
-    const URL_POST = "https://script.google.com/macros/s/AKfycbxk7fJQNpEPON1GQq-tO9JkouFVmD2HqbrjW-HCMTQLdDU7pA3j1PLihsF1JrQosZbA/exec"; // ACTUALIZADO
+    // URL actualizada con tu nueva implementación
+    const URL_GET = "https://script.google.com/macros/s/AKfycbwQnLpbIFgi34GvjQPHUxgTX1bF18v-HlQdoaBTmk7KDw1ncqyU6X1WDGJw9oSQ6J7H/exec";
+    const URL_POST = "https://script.google.com/macros/s/AKfycbwQnLpbIFgi34GvjQPHUxgTX1bF18v-HlQdoaBTmk7KDw1ncqyU6X1WDGJw9oSQ6J7H/exec";
 
     function actualizarFechaHora() {
       const now = new Date();
@@ -178,6 +191,7 @@
       };
       document.getElementById("datetime").innerText = now.toLocaleDateString('es-CL', opciones);
     }
+    setInterval(actualizarFechaHora, 1000);
     actualizarFechaHora();
 
     async function buscarDatosConductor() {
@@ -191,23 +205,33 @@
         return;
       }
 
-      contenedor.innerText = "Buscando...";
+      // Validar formato de RUT chileno
+      if (!/^[0-9]{7,8}-[0-9kK]{1}$/.test(rut)) {
+        contenedor.innerText = "❌ Formato RUT inválido";
+        manualSection.style.display = "block";
+        return;
+      }
+
+      contenedor.innerHTML = "<span class='loading'></span> Buscando...";
+      manualSection.style.display = "none";
 
       try {
-        const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
+        const response = await fetch(`${URL_GET}?tipo=personal&rut=${encodeURIComponent(rut)}`);
+        if (!response.ok) throw new Error("Error en la respuesta");
+        
         const data = await response.json();
-
+        
         if (data.error) {
-          contenedor.innerText = "❌ No encontrado.";
+          contenedor.innerText = "❌ No encontrado";
           manualSection.style.display = "block";
         } else {
-          contenedor.innerText = data.NOMBRE || "(sin nombre registrado)";
+          contenedor.innerText = data.nombre || data.NOMBRE || "(sin nombre registrado)";
           manualSection.style.display = "none";
         }
       } catch (e) {
-        contenedor.innerText = "❌ Error al consultar.";
+        console.error("Error al buscar conductor:", e);
+        contenedor.innerText = "❌ Error al consultar";
         manualSection.style.display = "block";
-        console.error(e);
       }
     }
 
@@ -226,35 +250,43 @@
         return;
       }
 
-      contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "Buscando...";
+      contenedorFamilia.innerHTML = contenedorStatus.innerHTML = contenedorObs.innerHTML = "<span class='loading'></span> Buscando...";
       alertaIngreso.style.display = "none";
 
       try {
-        const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
+        const response = await fetch(`${URL_GET}?tipo=equipo&id=${encodeURIComponent(id)}`);
+        if (!response.ok) throw new Error("Error en la respuesta");
+        
         const data = await response.json();
 
         if (data.error) {
           contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ No encontrado";
         } else {
-          contenedorFamilia.innerText = data.FAMILIA || "(sin dato)";
-          contenedorObs.innerText = data.OBSERVACIONES || "(sin observaciones)";
-          const status = (data["STATUS ✎"] || "").trim().toLowerCase();
-          if (status === "operativo") {
-            contenedorStatus.innerText = "❌ No habilitado para ingreso.";
+          contenedorFamilia.innerText = data.familia || data.FAMILIA || "(sin dato)";
+          contenedorObs.innerText = data.observaciones || data.OBSERVACIONES || "(sin observaciones)";
+          
+          const status = (data.status || data["STATUS ✎"] || "").toString().trim().toLowerCase();
+          if (status.includes("operativo") || status.includes("no habilitado")) {
+            contenedorStatus.innerText = "❌ No habilitado para ingreso";
             alertaIngreso.style.display = "block";
           } else {
-            contenedorStatus.innerText = "✅ Sí habilitado para ingreso.";
+            contenedorStatus.innerText = "✅ Sí habilitado para ingreso";
             alertaIngreso.style.display = "none";
           }
         }
       } catch (e) {
-        contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ Error";
+        console.error("Error al buscar equipo:", e);
+        contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ Error al consultar";
         alertaIngreso.style.display = "none";
-        console.error(e);
       }
     }
 
     async function enviarFormulario() {
+      const btn = document.getElementById("submit-btn");
+      const originalBtnText = btn.innerText;
+      btn.innerHTML = "<span class='loading'></span> Enviando...";
+      btn.disabled = true;
+
       const rut = document.getElementById("rut-conductor").value.trim();
       const nombreManual = document.getElementById("nombre-manual").value.trim();
       const datosConductor = document.getElementById("datos-conductor").innerText.trim();
@@ -264,37 +296,76 @@
       const status = document.getElementById("status-equipo").innerText.trim();
       const obs = document.getElementById("observaciones-equipo").innerText.trim();
 
-      const nombre = datosConductor.includes("No encontrado") ? nombreManual : datosConductor;
+      // Determinar el nombre a usar
+      const nombre = datosConductor.includes("No encontrado") || 
+                    datosConductor.includes("Error") || 
+                    datosConductor === "" ? nombreManual : datosConductor;
 
-      if (!rut || !equipo || !guardia || !nombre) {
-        alert("⚠️ Completa todos los campos obligatorios.");
+      // Validaciones
+      if (!rut || !/^[0-9]{7,8}-[0-9kK]{1}$/.test(rut)) {
+        alert("⚠️ Ingrese un RUT válido (Formato: 12345678-9)");
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
         return;
       }
 
-      const formData = new FormData();
-      formData.append("rut", rut);
-      formData.append("nombre", nombre);
-      formData.append("equipo", equipo);
-      formData.append("familia", familia);
-      formData.append("habilitado", status);
-      formData.append("observaciones", obs);
-      formData.append("guardia", guardia);
+      if (!equipo) {
+        alert("⚠️ Ingrese el número de equipo");
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
+        return;
+      }
+
+      if (!nombre) {
+        alert("⚠️ Ingrese el nombre del conductor");
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
+        return;
+      }
+
+      if (!guardia) {
+        alert("⚠️ Ingrese el nombre del guardia");
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
+        return;
+      }
+
+      // Crear objeto con los datos
+      const data = {
+        rut: rut,
+        nombre: nombre,
+        equipo: equipo,
+        familia: familia,
+        habilitado: status,
+        observaciones: obs,
+        guardia: guardia,
+        timestamp: new Date().toISOString()
+      };
 
       try {
-        const res = await fetch(URL_POST, {
+        const response = await fetch(URL_POST, {
           method: "POST",
-          body: formData
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
         });
-        const text = await res.text();
-        if (text.includes("OK")) {
-          alert("✅ Datos enviados correctamente.");
+
+        const result = await response.json();
+        console.log("Respuesta del servidor:", result);
+
+        if (response.ok && result.success) {
+          alert("✅ Datos enviados correctamente");
           location.reload();
         } else {
-          alert("❌ Error al enviar.");
+          throw new Error(result.message || "Error desconocido al enviar datos");
         }
       } catch (e) {
-        alert("❌ Error al conectar con el servidor.");
-        console.error(e);
+        console.error("Error al enviar formulario:", e);
+        alert(`❌ Error al enviar: ${e.message}`);
+      } finally {
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
       }
     }
   </script>
