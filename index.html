@@ -168,7 +168,7 @@
 
   <script>
     const URL_GET = "https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec";
-    const URL_POST = "https://script.google.com/macros/s/AKfycbyRA_m595g4Yuo3el8WhxbAG75FdV26wnwv_IFB1B0-e-o7zpj0Ol_n5H8IYo_0KGRc/exec";
+    const URL_POST = "https://script.google.com/macros/s/AKfycby-yYPCDslb9zxW9Zsff8GZT1uweBafjv_I7rbTi-q1_CRE1icbjuFRN4niz70BUJEY/exec";
 
     function actualizarFechaHora() {
       const now = new Date();
@@ -194,7 +194,7 @@
       contenedor.innerText = "Buscando...";
 
       try {
-        const response = await fetch(`${URL_GET}?tipo=personal&id=${encodeURIComponent(rut)}`);
+        const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
         const data = await response.json();
 
         if (data.error) {
@@ -230,7 +230,7 @@
       alertaIngreso.style.display = "none";
 
       try {
-        const response = await fetch(`${URL_GET}?tipo=equipo&id=${encodeURIComponent(id)}`);
+        const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
         const data = await response.json();
 
         if (data.error) {
@@ -259,15 +259,15 @@
       const nombreManual = document.getElementById("nombre-manual").value.trim();
       const datosConductor = document.getElementById("datos-conductor").innerText.trim();
       const equipo = document.getElementById("numero-equipo").value.trim();
-      const familia = document.getElementById("familia-equipo").innerText.trim();
-      const habilitado = document.getElementById("status-equipo").innerText.trim();
-      const observaciones = document.getElementById("observaciones-equipo").innerText.trim();
       const guardia = document.getElementById("guardia").value.trim();
+      const familia = document.getElementById("familia-equipo").innerText.trim();
+      const status = document.getElementById("status-equipo").innerText.trim();
+      const obs = document.getElementById("observaciones-equipo").innerText.trim();
 
       const nombre = datosConductor.includes("No encontrado") ? nombreManual : datosConductor;
 
-      if (!rut || !nombre || !equipo || !guardia) {
-        alert("⚠️ Debes completar todos los campos obligatorios.");
+      if (!rut || !equipo || !guardia || !nombre) {
+        alert("⚠️ Completa todos los campos obligatorios.");
         return;
       }
 
@@ -276,8 +276,8 @@
       formData.append("nombre", nombre);
       formData.append("equipo", equipo);
       formData.append("familia", familia);
-      formData.append("habilitado", habilitado);
-      formData.append("observaciones", observaciones);
+      formData.append("habilitado", status);
+      formData.append("observaciones", obs);
       formData.append("guardia", guardia);
 
       try {
