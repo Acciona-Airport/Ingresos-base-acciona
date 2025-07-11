@@ -108,7 +108,7 @@
       <img class="logo" src="https://raw.githubusercontent.com/acciona-airport/Zarpes-acciona-aero/main/LogoAcciona2.png" alt="Logo Acciona" />
     </div>
 
-    <h1>Formulario de Ingreso de Equipos</h1>
+    <h1>Formulario de Ingreso de Equipos (Base Acciona)</h1>
 
     <div class="datetime-box" id="datetime"></div>
 
@@ -203,8 +203,8 @@
           contenedorObs.innerText = data.OBSERVACIONES || "(sin observaciones)";
           const status = (data["STATUS ✎"] || "").trim().toLowerCase();
           contenedorStatus.innerText = status === "operativo"
-            ? "❌ No habilitado para ingreso"
-            : "✅ Sí habilitado para ingreso";
+            ? "❌ No habilitado para ingreso."
+            : "✅ Sí habilitado para ingreso.";
         }
       } catch (e) {
         contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ Error";
