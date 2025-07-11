@@ -118,17 +118,17 @@
     </div>
 
     <div class="section">
-      <label>Datos del Conductor</label>
+      <label>Datos del Conductor:</label>
       <div class="result-box" id="datos-conductor"></div>
     </div>
 
     <div class="section">
-      <label for="numero-equipo">Ingrese Número de Equipo</label>
+      <label for="numero-equipo">Ingrese Número de Equipo:</label>
       <input type="text" id="numero-equipo" placeholder="Ej: 51125" onblur="buscarDatosEquipo()" />
     </div>
 
     <div class="section">
-      <label>Familia del Equipo</label>
+      <label>Familia del Equipo:</label>
       <div class="result-box" id="familia-equipo"></div>
     </div>
 
@@ -138,12 +138,12 @@
     </div>
 
     <div class="section">
-      <label>Observaciones</label>
+      <label>Observaciones:</label>
       <div class="result-box" id="observaciones-equipo"></div>
     </div>
 
     <div class="section">
-      <label for="guardia">Guardia quien fiscaliza</label>
+      <label for="guardia">Guardia quien fiscaliza:</label>
       <input type="text" id="guardia" placeholder="Nombre del guardia" />
     </div>
 
@@ -170,9 +170,9 @@
       try {
         const response = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=personal&id=" + encodeURIComponent(rut));
         const data = await response.json();
-        contenedor.innerText = data.error ? "❌ No encontrado" : data.NOMBRE || "(sin nombre registrado)";
+        contenedor.innerText = data.error ? "❌ No encontrado." : data.NOMBRE || "(sin nombre registrado)";
       } catch (e) {
-        contenedor.innerText = "❌ Error al consultar";
+        contenedor.innerText = "❌ Error al consultar.";
         console.error(e);
       }
     }
