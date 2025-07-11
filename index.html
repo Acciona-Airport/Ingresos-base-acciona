@@ -78,6 +78,11 @@
       transition: border-color 0.3s, box-shadow 0.3s;
     }
 
+    .input-ajustado {
+      padding-top: 14px;
+      padding-bottom: 14px;
+    }
+
     .input-estilo:focus {
       border-color: #c62828;
       box-shadow: 0 0 5px rgba(198, 40, 40, 0.5);
@@ -180,7 +185,7 @@
 
     <div class="section">
       <label for="rut-conductor">RUT del conductor:</label>
-      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
+      <input type="text" class="input-estilo input-ajustado" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
     </div>
 
     <div class="section">
@@ -195,7 +200,7 @@
 
     <div class="section">
       <label for="numero-equipo">Número de equipo:</label>
-      <input type="text" class="input-estilo" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
+      <input type="text" class="input-estilo input-ajustado" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
     </div>
 
     <div class="section">
@@ -221,7 +226,7 @@
 
     <div class="section">
       <label for="guardia">Guardia fiscalizador:</label>
-      <input type="text" class="input-estilo" id="guardia" placeholder="Nombre del guardia" />
+      <input type="text" class="input-estilo input-ajustado" id="guardia" placeholder="Nombre del guardia" />
     </div>
 
     <button class="btn" onclick="enviarFormulario()">Enviar</button>
