@@ -84,15 +84,14 @@
       color: #eee;
       border-radius: 6px;
     }
-    .alerta-roja {
-      background-color: #5a0000;
-      border: 1px solid #ff4444;
-      color: #ffb3b3;
-      padding: 12px;
+    .alert-box {
+      background-color: #b71c1c;
+      color: white;
+      padding: 10px;
+      margin-top: 15px;
+      border: 1px solid #900;
       border-radius: 6px;
       display: none;
-      font-weight: bold;
-      text-align: center;
     }
     .btn {
       background-color: #c62828;
@@ -110,21 +109,6 @@
       background-color: #b71c1c;
       transform: scale(1.02);
     }
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 3px solid #c62828;
-      border-top: 3px solid transparent;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      vertical-align: middle;
-      margin-left: 10px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
   </style>
 </head>
 <body>
@@ -133,13 +117,12 @@
       <img class="logo" src="https://raw.githubusercontent.com/acciona-airport/Zarpes-acciona-aero/main/LogoAcciona2.png" alt="Logo Acciona" />
     </div>
 
-    <h1>Formulario de Ingreso de Equipos (Base Acciona)</h1>
-
+    <h1>Formulario de Ingreso de Equipos</h1>
     <div class="datetime-box" id="datetime"></div>
 
     <div class="section">
-      <label for="rut-conductor">Ingrese RUT del conductor que ingresa <small>(Formato: 123456789-1)</small></label>
-      <input type="text" id="rut-conductor" placeholder="Ingrese RUT sin puntos y con guion." onblur="buscarDatosConductor()" required />
+      <label for="rut-conductor">RUT del conductor <small>(123456789-1)</small></label>
+      <input type="text" id="rut-conductor" required onblur="buscarDatosConductor()" />
     </div>
 
     <div class="section">
@@ -149,12 +132,12 @@
 
     <div class="section" id="manual-conductor-section" style="display:none;">
       <label for="nombre-manual">Ingrese manualmente nombre del conductor:</label>
-      <input type="text" id="nombre-manual" placeholder="Nombre completo del conductor" />
+      <input type="text" id="nombre-manual" />
     </div>
 
     <div class="section">
-      <label for="numero-equipo">Ingrese Número de Equipo:</label>
-      <input type="text" id="numero-equipo" placeholder="Ej: 51125" onblur="buscarDatosEquipo()" required />
+      <label for="numero-equipo">Número de Equipo:</label>
+      <input type="text" id="numero-equipo" required onblur="buscarDatosEquipo()" />
     </div>
 
     <div class="section">
@@ -167,8 +150,9 @@
       <div class="result-box" id="status-equipo"></div>
     </div>
 
-    <div id="alerta-ingreso" class="alerta-roja">
-      ⚠️ Equipo no habilitado para ingreso. Contacte con Control Flota.      Teléfono: +56 9 3860 1767
+    <div id="alerta-ingreso" class="alert-box">
+      ⚠️ Equipo no habilitado para ingreso. Contacte con control flota.<br/>
+      ☎️ Teléfono: +56 9 3860 1767
     </div>
 
     <div class="section">
@@ -178,7 +162,7 @@
 
     <div class="section">
       <label for="guardia">Guardia quien fiscaliza:</label>
-      <input type="text" id="guardia" placeholder="Nombre del guardia" required />
+      <input type="text" id="guardia" required />
     </div>
 
     <button class="btn" onclick="enviarFormulario()">Enviar</button>
@@ -187,113 +171,97 @@
   <script>
     function actualizarFechaHora() {
       const now = new Date();
-      const opciones = {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit'
-      };
-      document.getElementById("datetime").innerText = now.toLocaleDateString('es-CL', opciones);
+      document.getElementById("datetime").innerText = now.toLocaleString("es-CL");
     }
     actualizarFechaHora();
 
     async function buscarDatosConductor() {
       const rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
-      const manualSection = document.getElementById("manual-conductor-section");
+      const manual = document.getElementById("manual-conductor-section");
 
-      if (!rut) {
-        contenedor.innerText = "";
-        manualSection.style.display = "none";
-        return;
-      }
+      if (!rut) return;
 
-      contenedor.innerHTML = 'Buscando...<span class="spinner"></span>';
-
+      contenedor.innerText = "🔴 Buscando...";
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=personal&id=" + encodeURIComponent(rut));
-        const data = await response.json();
-
+        const res = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=personal&id=" + encodeURIComponent(rut));
+        const data = await res.json();
         if (data.error) {
           contenedor.innerText = "❌ No encontrado.";
-          manualSection.style.display = "block";
+          manual.style.display = "block";
         } else {
-          contenedor.innerText = data.NOMBRE || "(sin nombre registrado)";
-          manualSection.style.display = "none";
+          contenedor.innerText = data.NOMBRE || "(sin nombre)";
+          manual.style.display = "none";
         }
       } catch (e) {
-        contenedor.innerText = "❌ Error al consultar.";
-        manualSection.style.display = "block";
-        console.error(e);
+        contenedor.innerText = "❌ Error.";
+        manual.style.display = "block";
       }
     }
 
     async function buscarDatosEquipo() {
       const id = document.getElementById("numero-equipo").value.trim();
-      const contenedorFamilia = document.getElementById("familia-equipo");
-      const contenedorStatus = document.getElementById("status-equipo");
-      const contenedorObs = document.getElementById("observaciones-equipo");
-      const alertaIngreso = document.getElementById("alerta-ingreso");
+      const contFam = document.getElementById("familia-equipo");
+      const contStat = document.getElementById("status-equipo");
+      const contObs = document.getElementById("observaciones-equipo");
+      const alerta = document.getElementById("alerta-ingreso");
 
-      if (!id) {
-        contenedorFamilia.innerText = "";
-        contenedorStatus.innerText = "";
-        contenedorObs.innerText = "";
-        alertaIngreso.style.display = "none";
-        return;
-      }
-
-      contenedorFamilia.innerHTML = contenedorStatus.innerHTML = contenedorObs.innerHTML = 'Buscando...<span class="spinner"></span>';
-      alertaIngreso.style.display = "none";
+      contFam.innerText = contStat.innerText = contObs.innerText = "🔴 Buscando...";
+      alerta.style.display = "none";
 
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=equipo&id=" + encodeURIComponent(id));
-        const data = await response.json();
+        const res = await fetch("https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec?tipo=equipo&id=" + encodeURIComponent(id));
+        const data = await res.json();
 
-        if (data.error) {
-          contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ No encontrado";
+        contFam.innerText = data.FAMILIA || "(sin dato)";
+        contObs.innerText = data.OBSERVACIONES || "(sin obs.)";
+
+        const status = (data["STATUS ✎"] || "").toLowerCase();
+        if (status === "operativo") {
+          contStat.innerText = "❌ No habilitado para ingreso.";
+          alerta.style.display = "block";
         } else {
-          contenedorFamilia.innerText = data.FAMILIA || "(sin dato)";
-          contenedorObs.innerText = data.OBSERVACIONES || "(sin observaciones)";
-          const status = (data["STATUS ✎"] || "").trim().toLowerCase();
-          if (status === "operativo") {
-            contenedorStatus.innerText = "❌ No habilitado para ingreso.";
-            alertaIngreso.style.display = "block";
-          } else {
-            contenedorStatus.innerText = "✅ Sí habilitado para ingreso.";
-            alertaIngreso.style.display = "none";
-          }
+          contStat.innerText = "✅ Sí habilitado para ingreso.";
         }
       } catch (e) {
-        contenedorFamilia.innerText = contenedorStatus.innerText = contenedorObs.innerText = "❌ Error";
-        alertaIngreso.style.display = "none";
+        contFam.innerText = contStat.innerText = contObs.innerText = "❌ Error";
         console.error(e);
       }
     }
 
-    function enviarFormulario() {
+    async function enviarFormulario() {
       const rut = document.getElementById("rut-conductor").value.trim();
-      const nombreManual = document.getElementById("nombre-manual").value.trim();
-      const datosConductor = document.getElementById("datos-conductor").innerText.trim();
+      const nombre = document.getElementById("datos-conductor").innerText.includes("No encontrado")
+                    ? document.getElementById("nombre-manual").value.trim()
+                    : document.getElementById("datos-conductor").innerText.trim();
       const equipo = document.getElementById("numero-equipo").value.trim();
+      const familia = document.getElementById("familia-equipo").innerText.trim();
+      const status = document.getElementById("status-equipo").innerText.trim();
+      const obs = document.getElementById("observaciones-equipo").innerText.trim();
       const guardia = document.getElementById("guardia").value.trim();
 
-      if (!rut) {
-        alert("⚠️ Debes ingresar el RUT del conductor.");
-        return;
-      }
-      if (datosConductor.includes("No encontrado") && !nombreManual) {
-        alert("⚠️ Si no se encuentra el conductor, debes ingresar su nombre manualmente.");
-        return;
-      }
-      if (!equipo) {
-        alert("⚠️ Debes ingresar el número de equipo.");
-        return;
-      }
-      if (!guardia) {
-        alert("⚠️ Debes ingresar el nombre del guardia que fiscaliza.");
+      if (!rut || !equipo || !guardia || !nombre) {
+        alert("⚠️ Completa todos los campos obligatorios.");
         return;
       }
 
-      alert("📨 Datos preparados para envío. Aquí puedes conectar con Google Sheets.");
+      const data = {
+        rut, nombre, equipo, familia, status, obs, guardia, timestamp: new Date().toISOString()
+      };
+
+      try {
+        const res = await fetch("URL_DEL_SCRIPT_WEB_APP", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const result = await res.text();
+        alert("✅ Datos enviados correctamente.");
+        location.reload();
+      } catch (e) {
+        alert("❌ Error al enviar.");
+        console.error(e);
+      }
     }
   </script>
 </body>
