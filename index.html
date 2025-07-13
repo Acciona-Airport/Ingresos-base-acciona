@@ -200,9 +200,8 @@
 
     function actualizarFechaHora() {
       const now = new Date();
-      const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
       const diaSemana = dias[now.getDay()];
       const dia = now.getDate();
       const mes = meses[now.getMonth()];
@@ -212,7 +211,6 @@
       const segundos = String(now.getSeconds()).padStart(2, '0');
       const ampm = hora >= 12 ? 'P.M' : 'A.M';
       hora = hora % 12 || 12;
-
       const fechaFormateada = `${diaSemana}, ${dia} de ${mes} de ${anio}, ${hora}:${minutos}:${segundos} ${ampm}`;
       document.getElementById("datetime").innerText = fechaFormateada;
     }
@@ -223,19 +221,15 @@
       const rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
       const manualSection = document.getElementById("manual-conductor-section");
-
       if (!rut) {
         contenedor.innerText = "";
         manualSection.style.display = "none";
         return;
       }
-
       contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
-
       try {
         const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
         const data = await response.json();
-
         if (data.error) {
           contenedor.innerText = "❌ No encontrado.";
           manualSection.style.display = "block";
@@ -257,48 +251,40 @@
       const obsManual = document.getElementById("observaciones-manual");
       const alerta = document.getElementById("alerta-ingreso");
       const alertaAmarilla = document.getElementById("alerta-carga-extra");
-
       if (!id) {
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "";
-        alerta.style.display = "none";
-        alertaAmarilla.style.display = "none";
-        obsManual.style.display = "none";
+        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
         return;
       }
-
       const loading = '<span class="spinner"></span>Buscando...';
       familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
-      alerta.style.display = "none";
-      alertaAmarilla.style.display = "none";
-      obsManual.style.display = "none";
-
+      alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
       try {
         const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
         const data = await response.json();
-
         if (data.error) {
           familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
         } else {
           familiaBox.innerText = data.FAMILIA || "";
           const status = (data["STATUS ✎"] || "").toLowerCase();
-
           if (status === "operativo") {
             statusBox.innerText = "❌ No habilitado";
             obsBox.innerText = "⚠️ Observaciones requeridas";
-            alerta.style.display = "block";
-            alertaAmarilla.style.display = "block";
-            obsManual.style.display = "block";
+            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "block";
           } else {
             statusBox.innerText = "✅ Habilitado";
-            obsBox.innerText = data.OBSERVACIONES || "";
-            obsManual.style.display = "none";
+            const observaciones = data.OBSERVACIONES?.trim();
+            if (!observaciones) {
+              obsBox.innerText = "Equipo fuera de Operación, ya sea por inoperatividad o revisión en taller.";
+            } else {
+              obsBox.innerText = observaciones;
+            }
+            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
           }
         }
       } catch {
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error";
-        alerta.style.display = "none";
-        alertaAmarilla.style.display = "none";
-        obsManual.style.display = "none";
+        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
       }
     }
 
@@ -313,17 +299,14 @@
         ? document.getElementById("observaciones-manual").value.trim()
         : document.getElementById("observaciones-equipo").innerText.trim();
       const guardia = document.getElementById("guardia").value.trim();
-
       if (!rut || !nombre || !equipo || !guardia || (!observaciones && habilitado.includes("No habilitado"))) {
         alert("⚠️ Completa todos los campos obligatorios.");
         return;
       }
-
       const form = document.createElement("form");
       form.action = "https://docs.google.com/forms/d/e/1FAIpQLSf3ADvFtCeFHlm7RzOtNuuuxZkzjCgFnrvw7KM2d3DIPOGumg/formResponse";
       form.method = "POST";
       form.target = "_self";
-
       const campos = {
         "entry.675531615": rut,
         "entry.851525222": nombre,
@@ -333,7 +316,6 @@
         "entry.2133373249": observaciones,
         "entry.234162856": guardia
       };
-
       for (let name in campos) {
         const input = document.createElement("input");
         input.type = "hidden";
@@ -341,10 +323,8 @@
         input.value = campos[name];
         form.appendChild(input);
       }
-
       document.body.appendChild(form);
       form.submit();
-
       setTimeout(() => {
         window.location.href = "https://acciona-airport.github.io/Ingresos-base-acciona/";
       }, 1000);
