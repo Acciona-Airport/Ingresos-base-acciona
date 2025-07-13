@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ingreso de Equipos - Acciona</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f4f4f4;
@@ -19,7 +16,6 @@
       padding: 30px 15px;
       margin: 0;
     }
-
     .container {
       background-color: #ffffff;
       padding: 25px;
@@ -29,13 +25,11 @@
       width: 100%;
       border: 1px solid #ccc;
     }
-
     .logo-wrapper {
       display: flex;
       justify-content: center;
       margin-bottom: 20px;
     }
-
     .logo {
       max-width: 120px;
       padding: 6px;
@@ -43,18 +37,13 @@
       border-radius: 6px;
       transition: transform 0.3s ease;
     }
-
-    .logo:hover {
-      transform: scale(1.03);
-    }
-
+    .logo:hover { transform: scale(1.03); }
     h1 {
       font-size: 16px;
       color: #111;
       text-align: center;
       margin-bottom: 20px;
     }
-
     label {
       display: block;
       margin-top: 14px;
@@ -63,11 +52,7 @@
       color: #333;
       font-size: 14px;
     }
-
-    .section {
-      margin-bottom: 20px;
-    }
-
+    .section { margin-bottom: 20px; }
     .input-estilo {
       width: 100%;
       min-height: 42px;
@@ -80,13 +65,11 @@
       transition: border-color 0.3s, box-shadow 0.3s;
       resize: none;
     }
-
     .input-estilo:focus {
       border-color: #c62828;
       box-shadow: 0 0 5px rgba(198, 40, 40, 0.4);
       outline: none;
     }
-
     .datetime-box {
       background-color: #f0f0f0;
       border: 1px solid #ccc;
@@ -98,7 +81,6 @@
       font-size: 14px;
       color: #222;
     }
-
     .alert-box {
       display: none;
       border-radius: 6px;
@@ -109,20 +91,17 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       font-size: 13px;
     }
-
     .alert-red {
       background-color: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
       white-space: pre-line;
     }
-
     .alert-yellow {
       background-color: #fff3cd;
       color: #856404;
       border: 1px solid #ffeeba;
     }
-
     .btn {
       background-color: #c62828;
       color: #fff;
@@ -135,13 +114,11 @@
       width: 100%;
       margin-top: 18px;
     }
-
     .btn:hover {
       background-color: #b71c1c;
       transform: scale(1.03);
       box-shadow: 0 0 12px rgba(255, 0, 0, 0.2);
     }
-
     .spinner {
       display: inline-block;
       width: 15px;
@@ -153,10 +130,7 @@
       vertical-align: middle;
       margin-right: 6px;
     }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -207,6 +181,7 @@
     <div class="section">
       <label>Observaciones:</label>
       <div class="input-estilo" id="observaciones-equipo"></div>
+      <textarea class="input-estilo" id="observaciones-manual" placeholder="Escriba observaciones aquí" style="display:none; margin-top: 10px;"></textarea>
     </div>
 
     <div class="section">
@@ -265,6 +240,7 @@
       const familiaBox = document.getElementById("familia-equipo");
       const statusBox = document.getElementById("status-equipo");
       const obsBox = document.getElementById("observaciones-equipo");
+      const obsManual = document.getElementById("observaciones-manual");
       const alerta = document.getElementById("alerta-ingreso");
       const alertaAmarilla = document.getElementById("alerta-carga-extra");
 
@@ -272,6 +248,7 @@
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "";
         alerta.style.display = "none";
         alertaAmarilla.style.display = "none";
+        obsManual.style.display = "none";
         return;
       }
 
@@ -279,6 +256,7 @@
       familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
       alerta.style.display = "none";
       alertaAmarilla.style.display = "none";
+      obsManual.style.display = "none";
 
       try {
         const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
@@ -288,21 +266,25 @@
           familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
         } else {
           familiaBox.innerText = data.FAMILIA || "";
-          obsBox.innerText = data.OBSERVACIONES || "";
           const status = (data["STATUS ✎"] || "").toLowerCase();
 
           if (status === "operativo") {
             statusBox.innerText = "❌ No habilitado";
+            obsBox.innerText = "⚠️ Observaciones requeridas";
             alerta.style.display = "block";
             alertaAmarilla.style.display = "block";
+            obsManual.style.display = "block";
           } else {
             statusBox.innerText = "✅ Habilitado";
+            obsBox.innerText = data.OBSERVACIONES || "";
+            obsManual.style.display = "none";
           }
         }
       } catch {
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error";
         alerta.style.display = "none";
         alertaAmarilla.style.display = "none";
+        obsManual.style.display = "none";
       }
     }
 
@@ -313,10 +295,12 @@
       const equipo = document.getElementById("numero-equipo").value.trim();
       const familia = document.getElementById("familia-equipo").innerText.trim();
       const habilitado = document.getElementById("status-equipo").innerText.trim();
-      const observaciones = document.getElementById("observaciones-equipo").innerText.trim();
+      const observaciones = document.getElementById("status-equipo").innerText.includes("No habilitado")
+        ? document.getElementById("observaciones-manual").value.trim()
+        : document.getElementById("observaciones-equipo").innerText.trim();
       const guardia = document.getElementById("guardia").value.trim();
 
-      if (!rut || !nombre || !equipo || !guardia) {
+      if (!rut || !nombre || !equipo || !guardia || (!observaciones && habilitado.includes("No habilitado"))) {
         alert("⚠️ Completa todos los campos obligatorios.");
         return;
       }
