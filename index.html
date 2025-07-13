@@ -154,7 +154,7 @@
 
     <div class="section" id="manual-conductor-section" style="display:none;">
       <label for="nombre-manual">Ingrese nombre manualmente:</label>
-      <input type="text" class="input-estilo" id="nombre-manual" placeholder="Nombre del conductor" />
+      <input type="text" class="input-estilo" id="nombre-manual" placeholder="Nombre del conductor" oninput="this.value = this.value.toUpperCase();" />
     </div>
 
     <div class="section">
@@ -181,7 +181,7 @@
     <div class="section">
       <label>Observaciones:</label>
       <div class="input-estilo" id="observaciones-equipo"></div>
-      <textarea class="input-estilo" id="observaciones-manual" placeholder="Escriba observaciones aquí" style="display:none; margin-top: 10px;"></textarea>
+      <textarea class="input-estilo" id="observaciones-manual" placeholder="Escriba observaciones aquí" style="display:none; margin-top: 10px;" oninput="this.value = this.value.toUpperCase();"></textarea>
     </div>
 
     <div class="section">
