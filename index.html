@@ -268,11 +268,11 @@
           familiaBox.innerText = data.FAMILIA || "";
           const status = (data["STATUS ✎"] || "").toLowerCase();
           if (status === "operativo") {
-            statusBox.innerText = "❌ No habilitado";
+            statusBox.innerText = "❌ No habilitado.";
             obsBox.innerText = "⚠️ Observaciones requeridas";
             alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "block";
           } else {
-            statusBox.innerText = "✅ Habilitado";
+            statusBox.innerText = "✅ Habilitado.";
             const observaciones = data.OBSERVACIONES?.trim();
             if (!observaciones) {
               obsBox.innerText = "Equipo fuera de Operación, ya sea por inoperatividad o revisión en taller.";
