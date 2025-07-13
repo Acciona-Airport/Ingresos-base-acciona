@@ -206,19 +206,17 @@
       const diaSemana = dias[now.getDay()];
       const dia = now.getDate();
       const mes = meses[now.getMonth()];
-      const año = now.getFullYear();
-
+      const anio = now.getFullYear();
       let hora = now.getHours();
-      const minutos = now.getMinutes().toString().padStart(2, '0');
-      const segundos = now.getSeconds().toString().padStart(2, '0');
+      const minutos = String(now.getMinutes()).padStart(2, '0');
+      const segundos = String(now.getSeconds()).padStart(2, '0');
       const ampm = hora >= 12 ? 'P.M' : 'A.M';
       hora = hora % 12 || 12;
 
-      const horaFormateada = `${hora}:${minutos}:${segundos} ${ampm}`;
-      const fechaFormateada = `${diaSemana}, ${dia} de ${mes} de ${año}, ${horaFormateada}`;
-
+      const fechaFormateada = `${diaSemana}, ${dia} de ${mes} de ${anio}, ${hora}:${minutos}:${segundos} ${ampm}`;
       document.getElementById("datetime").innerText = fechaFormateada;
     }
+    setInterval(actualizarFechaHora, 1000);
     actualizarFechaHora();
 
     async function buscarDatosConductor() {
@@ -348,8 +346,7 @@
       form.submit();
 
       setTimeout(() => {
-        alert("✅ Enviado correctamente. Redirigiendo...");
-        window.location.reload();
+        window.location.href = "https://acciona-airport.github.io/Ingresos-base-acciona/";
       }, 1000);
     }
   </script>
