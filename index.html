@@ -200,7 +200,7 @@
 
     function actualizarFechaHora() {
       const now = new Date();
-      const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+      const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sabado'];
       const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
       const diaSemana = dias[now.getDay()];
       const dia = now.getDate();
@@ -287,17 +287,26 @@
     function enviarFormulario() {
       const rut = document.getElementById("rut-conductor").value.trim();
       const nombreManual = document.getElementById("nombre-manual").value.trim();
-      const nombre = document.getElementById("datos-conductor").innerText.includes("No encontrado") ? nombreManual : document.getElementById("datos-conductor").innerText.trim();
+      const datosConductor = document.getElementById("datos-conductor").innerText.trim();
+      const nombre = datosConductor.includes("No encontrado") ? nombreManual : datosConductor;
       const equipo = document.getElementById("numero-equipo").value.trim();
       const familia = document.getElementById("familia-equipo").innerText.trim();
       const habilitado = document.getElementById("status-equipo").innerText.trim();
-      const observaciones = document.getElementById("status-equipo").innerText.includes("No habilitado")
-        ? document.getElementById("observaciones-manual").value.trim()
-        : document.getElementById("observaciones-equipo").innerText.trim();
+      const observacionesManual = document.getElementById("observaciones-manual").value.trim();
+      const observacionesEquipo = document.getElementById("observaciones-equipo").innerText.trim();
+      const observaciones = habilitado.includes("No habilitado") ? observacionesManual : observacionesEquipo;
       const guardia = document.getElementById("guardia").value.trim();
 
-      if (!rut || !nombre || !equipo || !guardia || (!observaciones && habilitado.includes("No habilitado"))) {
-        alert("⚠️ Completa todos los campos obligatorios.");
+      let camposFaltantes = [];
+
+      if (!rut) camposFaltantes.push("🔴 RUT del conductor");
+      if (!nombre) camposFaltantes.push("🔴 Nombre del conductor");
+      if (!equipo) camposFaltantes.push("🔴 Número de equipo");
+      if (!guardia) camposFaltantes.push("🔴 Guardia fiscalizador");
+      if (habilitado.includes("No habilitado") && !observaciones) camposFaltantes.push("🔴 Observaciones (obligatorias para equipos no habilitados)");
+
+      if (camposFaltantes.length > 0) {
+        alert("⚠️ Faltan los siguientes campos por completar:\n\n" + camposFaltantes.join("\n"));
         return;
       }
 
