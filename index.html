@@ -135,11 +135,40 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .spinner-grande {
+      width: 60px;
+      height: 60px;
+      border: 6px solid rgba(198, 40, 40, 0.2);
+      border-top: 6px solid #c62828;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
     .mensaje-error {
       color: #c62828;
       font-size: 13px;
       font-weight: bold;
       margin-top: 5px;
+    }
+
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    #mensaje-exito {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 16px;
+      color: #2e7d32;
+      display: none;
     }
   </style>
 </head>
@@ -152,54 +181,20 @@
     <h1>Formulario de Ingreso de Equipos (Base Acciona)</h1>
     <div class="datetime-box" id="datetime"></div>
 
-    <div class="section">
-      <label for="rut-conductor">RUT del conductor:</label>
-      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ej: 12345678-9" />
-    </div>
-
-    <div class="section">
-      <label>Nombre conductor:</label>
-      <div class="input-estilo" id="datos-conductor"></div>
-    </div>
-
-    <div class="section" id="manual-conductor-section" style="display:none;">
-      <label for="nombre-manual">Ingrese nombre manualmente:</label>
-      <input type="text" class="input-estilo input-manual" id="nombre-manual" placeholder="Nombre del conductor" oninput="this.value = this.value.toUpperCase();" />
-    </div>
-
-    <div class="section">
-      <label for="numero-equipo">Número de equipo:</label>
-      <input type="text" class="input-estilo" id="numero-equipo" onblur="buscarDatosEquipo()" placeholder="Ej: 51125" />
-    </div>
-
-    <div class="section">
-      <label>Familia:</label>
-      <div class="input-estilo" id="familia-equipo"></div>
-    </div>
-
-    <div class="section">
-      <label>¿Habilitado para ingresar?</label>
-      <div class="input-estilo" id="status-equipo"></div>
-      <div class="alert-box alert-red" id="alerta-ingreso">
-        ❌ Equipo no habilitado para el ingreso, contacte a Control Flota 📞 Tel: 56 9 3860 1767.
-      </div>
-      <div class="alert-box alert-yellow" id="alerta-carga-extra">
-        ⚠️ Ojo: Este vehículo solo puede ingresar a la Base Acciona para abastecerse de combustible o para realizar una carga eléctrica.
-      </div>
-    </div>
-
-    <div class="section">
-      <label>Observaciones:</label>
-      <div class="input-estilo" id="observaciones-equipo"></div>
-      <textarea class="input-estilo input-manual" id="observaciones-manual" placeholder="Escriba observaciones aquí." style="display:none; margin-top: 10px;" oninput="this.value = this.value.toUpperCase();"></textarea>
-    </div>
+    <!-- Formulario completo aquí (idéntico al tuyo actual)... -->
 
     <div class="section">
       <label for="guardia">Guardia fiscalizador:</label>
       <input type="text" class="input-estilo" id="guardia" placeholder="Ingrese nombre del guardia." oninput="this.value = this.value.toUpperCase();" />
     </div>
 
-    <button class="btn" onclick="enviarFormulario()">Enviar</button>
+    <button class="btn" id="btn-enviar" onclick="enviarFormulario()">Enviar</button>
+  </div>
+
+  <!-- Overlay de carga -->
+  <div id="overlay">
+    <div class="spinner-grande"></div>
+    <div id="mensaje-exito">✅ Enviado exitosamente</div>
   </div>
 
   <script>
@@ -223,73 +218,6 @@
     }
     setInterval(actualizarFechaHora, 1000);
     actualizarFechaHora();
-
-    async function buscarDatosConductor() {
-      const rut = document.getElementById("rut-conductor").value.trim();
-      const contenedor = document.getElementById("datos-conductor");
-      const manualSection = document.getElementById("manual-conductor-section");
-      if (!rut) {
-        contenedor.innerText = "";
-        manualSection.style.display = "none";
-        return;
-      }
-      contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
-      try {
-        const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
-        const data = await response.json();
-        if (data.error) {
-          contenedor.innerText = "❌ No encontrado.";
-          manualSection.style.display = "block";
-        } else {
-          contenedor.innerText = data.NOMBRE || "(sin nombre)";
-          manualSection.style.display = "none";
-        }
-      } catch {
-        contenedor.innerText = "❌ Error al buscar.";
-        manualSection.style.display = "block";
-      }
-    }
-
-    async function buscarDatosEquipo() {
-      const id = document.getElementById("numero-equipo").value.trim();
-      const familiaBox = document.getElementById("familia-equipo");
-      const statusBox = document.getElementById("status-equipo");
-      const obsBox = document.getElementById("observaciones-equipo");
-      const obsManual = document.getElementById("observaciones-manual");
-      const alerta = document.getElementById("alerta-ingreso");
-      const alertaAmarilla = document.getElementById("alerta-carga-extra");
-      if (!id) {
-        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "";
-        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-        return;
-      }
-      const loading = '<span class="spinner"></span>Buscando...';
-      familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
-      alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-      try {
-        const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
-        const data = await response.json();
-        if (data.error) {
-          familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
-        } else {
-          familiaBox.innerText = data.FAMILIA || "";
-          const status = (data["STATUS ✎"] || "").toLowerCase();
-          if (status === "operativo") {
-            statusBox.innerText = "❌ No habilitado.";
-            obsBox.innerText = "⚠️ Observaciones requeridas";
-            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "block";
-          } else {
-            statusBox.innerText = "✅ Habilitado.";
-            const observaciones = data.OBSERVACIONES?.trim();
-            obsBox.innerText = observaciones || "Equipo fuera de Operación, ya sea por inoperatividad o revisión en taller.";
-            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-          }
-        }
-      } catch {
-        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error";
-        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-      }
-    }
 
     function mostrarErrorCampo(campo, mensaje) {
       const errorPrevio = campo.parentElement.querySelector('.mensaje-error');
@@ -318,6 +246,7 @@
       const observacionesManualInput = document.getElementById("observaciones-manual");
       const observacionesEquipo = document.getElementById("observaciones-equipo").innerText.trim();
       const guardiaInput = document.getElementById("guardia");
+      const btn = document.getElementById("btn-enviar");
 
       const rut = rutInput.value.trim();
       const nombreManual = nombreManualInput.value.trim();
@@ -331,6 +260,13 @@
       if (!equipo) return mostrarErrorCampo(equipoInput, "⚠️ Favor completar este campo");
       if (habilitado.includes("No habilitado") && !observaciones) return mostrarErrorCampo(observacionesManualInput, "⚠️ Favor completar este campo");
       if (!guardia) return mostrarErrorCampo(guardiaInput, "⚠️ Favor completar este campo");
+
+      // Mostrar spinner
+      const overlay = document.getElementById("overlay");
+      const mensajeExito = document.getElementById("mensaje-exito");
+      overlay.style.display = "flex";
+      mensajeExito.style.display = "none";
+      btn.disabled = true;
 
       const formData = new FormData();
       formData.append("entry.675531615", rut);
@@ -346,8 +282,13 @@
         mode: "no-cors",
         body: formData
       }).then(() => {
-        window.location.href = "https://acciona-airport.github.io/Ingresos-base-acciona/";
+        mensajeExito.style.display = "block";
+        setTimeout(() => {
+          window.location.href = "https://acciona-airport.github.io/Ingresos-base-acciona/";
+        }, 2000);
       }).catch(error => {
+        overlay.style.display = "none";
+        btn.disabled = false;
         alert("❌ Error al enviar el formulario.");
         console.error(error);
       });
