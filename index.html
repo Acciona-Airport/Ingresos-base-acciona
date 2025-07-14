@@ -134,6 +134,13 @@
       margin-right: 6px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .mensaje-error {
+      color: #c62828;
+      font-size: 13px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -200,7 +207,7 @@
 
     function actualizarFechaHora() {
       const now = new Date();
-      const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sabado'];
+      const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
       const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
       const diaSemana = dias[now.getDay()];
       const dia = now.getDate();
@@ -284,31 +291,46 @@
       }
     }
 
+    function mostrarErrorCampo(campo, mensaje) {
+      const errorPrevio = campo.parentElement.querySelector('.mensaje-error');
+      if (errorPrevio) errorPrevio.remove();
+
+      const error = document.createElement("div");
+      error.className = "mensaje-error";
+      error.innerText = mensaje;
+      campo.parentElement.appendChild(error);
+      campo.style.border = "2px solid #c62828";
+      campo.focus();
+
+      setTimeout(() => {
+        error.remove();
+        campo.style.border = "";
+      }, 3000);
+    }
+
     function enviarFormulario() {
-      const rut = document.getElementById("rut-conductor").value.trim();
-      const nombreManual = document.getElementById("nombre-manual").value.trim();
+      const rutInput = document.getElementById("rut-conductor");
+      const nombreManualInput = document.getElementById("nombre-manual");
       const datosConductor = document.getElementById("datos-conductor").innerText.trim();
-      const nombre = datosConductor.includes("No encontrado") ? nombreManual : datosConductor;
-      const equipo = document.getElementById("numero-equipo").value.trim();
+      const equipoInput = document.getElementById("numero-equipo");
       const familia = document.getElementById("familia-equipo").innerText.trim();
       const habilitado = document.getElementById("status-equipo").innerText.trim();
-      const observacionesManual = document.getElementById("observaciones-manual").value.trim();
+      const observacionesManualInput = document.getElementById("observaciones-manual");
       const observacionesEquipo = document.getElementById("observaciones-equipo").innerText.trim();
-      const observaciones = habilitado.includes("No habilitado") ? observacionesManual : observacionesEquipo;
-      const guardia = document.getElementById("guardia").value.trim();
+      const guardiaInput = document.getElementById("guardia");
 
-      let camposFaltantes = [];
+      const rut = rutInput.value.trim();
+      const nombreManual = nombreManualInput.value.trim();
+      const nombre = datosConductor.includes("No encontrado") ? nombreManual : datosConductor;
+      const equipo = equipoInput.value.trim();
+      const observaciones = habilitado.includes("No habilitado") ? observacionesManualInput.value.trim() : observacionesEquipo;
+      const guardia = guardiaInput.value.trim();
 
-      if (!rut) camposFaltantes.push("🔴 RUT del conductor");
-      if (!nombre) camposFaltantes.push("🔴 Nombre del conductor");
-      if (!equipo) camposFaltantes.push("🔴 Número de equipo");
-      if (!guardia) camposFaltantes.push("🔴 Guardia fiscalizador");
-      if (habilitado.includes("No habilitado") && !observaciones) camposFaltantes.push("🔴 Observaciones (obligatorias para equipos no habilitados)");
-
-      if (camposFaltantes.length > 0) {
-        alert("⚠️ Faltan los siguientes campos por completar:\n\n" + camposFaltantes.join("\n"));
-        return;
-      }
+      if (!rut) return mostrarErrorCampo(rutInput, "⚠️ Favor completar este campo");
+      if (!nombre) return mostrarErrorCampo(nombreManualInput, "⚠️ Favor completar este campo");
+      if (!equipo) return mostrarErrorCampo(equipoInput, "⚠️ Favor completar este campo");
+      if (habilitado.includes("No habilitado") && !observaciones) return mostrarErrorCampo(observacionesManualInput, "⚠️ Favor completar este campo");
+      if (!guardia) return mostrarErrorCampo(guardiaInput, "⚠️ Favor completar este campo");
 
       const formData = new FormData();
       formData.append("entry.675531615", rut);
