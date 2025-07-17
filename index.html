@@ -181,7 +181,7 @@
 
     <div class="section">
       <label for="rut-conductor">RUT del conductor:</label>
-      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos y con guion." />
+      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin guion ni dígito verificador (ej: 11838535)" />
     </div>
 
     <div class="section">
@@ -253,15 +253,20 @@
     actualizarFechaHora();
 
     async function buscarDatosConductor() {
-      const rut = document.getElementById("rut-conductor").value.trim();
+      let rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
       const manualSection = document.getElementById("manual-conductor-section");
+
       if (!rut) {
         contenedor.innerText = "";
         manualSection.style.display = "none";
         return;
       }
+
+      rut = rut.split('-')[0];
+
       contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
+
       try {
         const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
         const data = await response.json();
@@ -276,118 +281,6 @@
         contenedor.innerText = "❌ Error al buscar.";
         manualSection.style.display = "block";
       }
-    }
-
-    async function buscarDatosEquipo() {
-      const id = document.getElementById("numero-equipo").value.trim();
-      const familiaBox = document.getElementById("familia-equipo");
-      const statusBox = document.getElementById("status-equipo");
-      const obsBox = document.getElementById("observaciones-equipo");
-      const obsManual = document.getElementById("observaciones-manual");
-      const alerta = document.getElementById("alerta-ingreso");
-      const alertaAmarilla = document.getElementById("alerta-carga-extra");
-      if (!id) {
-        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "";
-        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-        return;
-      }
-      const loading = '<span class="spinner"></span>Buscando...';
-      familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
-      alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-      try {
-        const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
-        const data = await response.json();
-        if (data.error) {
-          familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
-        } else {
-          familiaBox.innerText = data.FAMILIA || "";
-          const status = (data["STATUS ✎"] || "").toLowerCase();
-          if (status === "operativo") {
-            statusBox.innerText = "❌ No habilitado.";
-            obsBox.innerText = "⚠️ Observaciones requeridas";
-            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "block";
-          } else {
-            statusBox.innerText = "✅ Habilitado.";
-            const observaciones = data.OBSERVACIONES?.trim();
-            obsBox.innerText = observaciones || "Equipo fuera de Operación, ya sea por inoperatividad o revisión en taller.";
-            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-          }
-        }
-      } catch {
-        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error";
-        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-      }
-    }
-
-    function mostrarErrorCampo(campo, mensaje) {
-      const errorPrevio = campo.parentElement.querySelector('.mensaje-error');
-      if (errorPrevio) errorPrevio.remove();
-
-      const error = document.createElement("div");
-      error.className = "mensaje-error";
-      error.innerText = mensaje;
-      campo.parentElement.appendChild(error);
-      campo.style.border = "2px solid #c62828";
-      campo.focus();
-
-      setTimeout(() => {
-        error.remove();
-        campo.style.border = "";
-      }, 3000);
-    }
-
-    function enviarFormulario() {
-      const rutInput = document.getElementById("rut-conductor");
-      const nombreManualInput = document.getElementById("nombre-manual");
-      const datosConductor = document.getElementById("datos-conductor").innerText.trim();
-      const equipoInput = document.getElementById("numero-equipo");
-      const familia = document.getElementById("familia-equipo").innerText.trim();
-      const habilitado = document.getElementById("status-equipo").innerText.trim();
-      const observacionesManualInput = document.getElementById("observaciones-manual");
-      const observacionesEquipo = document.getElementById("observaciones-equipo").innerText.trim();
-      const guardiaInput = document.getElementById("guardia");
-
-      const rut = rutInput.value.trim();
-      const nombreManual = nombreManualInput.value.trim();
-      const nombre = datosConductor.includes("No encontrado") ? nombreManual : datosConductor;
-      const equipo = equipoInput.value.trim();
-      const observaciones = habilitado.includes("No habilitado") ? observacionesManualInput.value.trim() : observacionesEquipo;
-      const guardia = guardiaInput.value.trim();
-
-      if (!rut) return mostrarErrorCampo(rutInput, "⚠️ Favor completar este campo");
-      if (!nombre) return mostrarErrorCampo(nombreManualInput, "⚠️ Favor completar este campo");
-      if (!equipo) return mostrarErrorCampo(equipoInput, "⚠️ Favor completar este campo");
-      if (habilitado.includes("No habilitado") && !observaciones) return mostrarErrorCampo(observacionesManualInput, "⚠️ Favor completar este campo");
-      if (!guardia) return mostrarErrorCampo(guardiaInput, "⚠️ Favor completar este campo");
-
-      const formData = new FormData();
-      formData.append("entry.675531615", rut);
-      formData.append("entry.851525222", nombre);
-      formData.append("entry.1413809422", equipo);
-      formData.append("entry.783685052", familia);
-      formData.append("entry.10343893", habilitado);
-      formData.append("entry.2133373249", observaciones);
-      formData.append("entry.234162856", guardia);
-
-      const overlay = document.getElementById("overlay");
-      const mensaje = document.getElementById("mensaje-exito");
-      overlay.style.display = "flex";
-      mensaje.style.display = "none";
-
-      fetch("https://docs.google.com/forms/d/e/1FAIpQLSf3ADvFtCeFHlm7RzOtNuuuxZkzjCgFnrvw7KM2d3DIPOGumg/formResponse", {
-        method: "POST",
-        mode: "no-cors",
-        body: formData
-      }).then(() => {
-        mensaje.style.display = "block";
-        setTimeout(() => {
-          window.location.href = "https://acciona-airport.github.io/Ingresos-base-acciona/";
-        }, 2000);
-      }).catch(error => {
-        overlay.style.display = "none";
-        alert("❌ Error al enviar el formulario.");
-        console.error(error);
-      });
     }
   </script>
 </body>
