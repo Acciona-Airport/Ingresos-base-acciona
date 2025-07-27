@@ -241,12 +241,10 @@
       const dia = now.getDate();
       const mes = meses[now.getMonth()];
       const anio = now.getFullYear();
-      let hora = now.getHours();
+      const hora = String(now.getHours()).padStart(2, '0');
       const minutos = String(now.getMinutes()).padStart(2, '0');
       const segundos = String(now.getSeconds()).padStart(2, '0');
-      const ampm = hora >= 12 ? 'P.M' : 'A.M';
-      hora = hora % 12 || 12;
-      const fechaFormateada = `${diaSemana}, ${dia} de ${mes} de ${anio}, ${hora}:${minutos}:${segundos} ${ampm}`;
+      const fechaFormateada = `${diaSemana}, ${dia} de ${mes} de ${anio}, ${hora}:${minutos}:${segundos}`;
       document.getElementById("datetime").innerText = fechaFormateada;
     }
     setInterval(actualizarFechaHora, 1000);
