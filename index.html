@@ -231,7 +231,7 @@
   </div>
 
   <script>
-    const URL_GET = "https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec";
+    const URL_GET = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjq0KPxo7vMI0Ov5ySf21eyybNSHYUjjarjEZrLoBZYTzjgJOtAbvwXwrd9VRLouSEXc3T0wzTJ2uRf3jI6NrjYqfIf96rJgtBVl-7JFbcCAMirUbJg_aI07C7JGa3L0jLIVD_wTXL7cDq1az5jKC3tV7iA-bxHvfnK8enbr2XF8abkOCTBLHM_KaQQxrlJO5mablmAfWf6zSHtnBvDBSZtNZLfk50Gu4B4e1Re2k0w1vHOhKvaeXs9OAzWJv4oJCcGHJFbqTcMDSq9PSpUqrL6lYlR_jGJobabNejA&lib=MNPJzHQyKPpaHxKg402dYmzw4QY5T5f8A";
 
     function actualizarFechaHora() {
       const now = new Date();
@@ -261,7 +261,7 @@
       }
       contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
       try {
-        const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
+        const response = await fetch(URL_GET + "?tipo=funcionario&id=" + encodeURIComponent(rut));
         const data = await response.json();
         if (data.error) {
           contenedor.innerText = "❌ No encontrado.";
