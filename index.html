@@ -231,7 +231,8 @@
   </div>
 
   <script>
-    const URL_GET = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjq0KPxo7vMI0Ov5ySf21eyybNSHYUjjarjEZrLoBZYTzjgJOtAbvwXwrd9VRLouSEXc3T0wzTJ2uRf3jI6NrjYqfIf96rJgtBVl-7JFbcCAMirUbJg_aI07C7JGa3L0jLIVD_wTXL7cDq1az5jKC3tV7iA-bxHvfnK8enbr2XF8abkOCTBLHM_KaQQxrlJO5mablmAfWf6zSHtnBvDBSZtNZLfk50Gu4B4e1Re2k0w1vHOhKvaeXs9OAzWJv4oJCcGHJFbqTcMDSq9PSpUqrL6lYlR_jGJobabNejA&lib=MNPJzHQyKPpaHxKg402dYmzw4QY5T5f8A";
+    const URL_GET = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLitHlTJ_NwIpwQXTodtw0frjDYwBxUw43whVWVQSxvCcRZin3FQ3Nsk1K1tr4A-Qg1Wx4MkUaVD6e0wWaKEwOX-MQMA4BkDO-xO0P3Yag2d_F-J_k27NeA_OwS25Bcb_nLEfgNauLDHu9sxXPSi20ER_M81qhnkoDXjebQUaO0CMk5FQwBNAVqetZ4CJFApk8mmrDjmnl9i18jCO8LXp0597gvalMZniDOifDLbpLQz2u-PvByBNTNdd3UZzw_l7sSA1XMRxZXrusblVtwfe_BaegO9fa87B970xeUE&lib=MlJk7o5nmIiWJ4im1aUYXSDw4QY5T5f8A";
+    const URL_EQUIPOS = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjq0KPxo7vMI0Ov5ySf21eyybNSHYUjjarjEZrLoBZYTzjgJOtAbvwXwrd9VRLouSEXc3T0wzTJ2uRf3jI6NrjYqfIf96rJgtBVl-7JFbcCAMirUbJg_aI07C7JGa3L0jLIVD_wTXL7cDq1az5jKC3tV7iA-bxHvfnK8enbr2XF8abkOCTBLHM_KaQQxrlJO5mablmAfWf6zSHtnBvDBSZtNZLfk50Gu4B4e1Re2k0w1vHOhKvaeXs9OAzWJv4oJCcGHJFbqTcMDSq9PSpUqrL6lYlR_jGJobabNejA&lib=MNPJzHQyKPpaHxKg402dYmzw4QY5T5f8A";
 
     function actualizarFechaHora() {
       const now = new Date();
@@ -254,23 +255,37 @@
       const rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
       const manualSection = document.getElementById("manual-conductor-section");
+      
       if (!rut) {
         contenedor.innerText = "";
         manualSection.style.display = "none";
         return;
       }
+      
       contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
+      
       try {
-        const response = await fetch(URL_GET + "?tipo=funcionario&id=" + encodeURIComponent(rut));
+        const response = await fetch(URL_GET);
         const data = await response.json();
-        if (data.error) {
+        
+        // Buscar el RUT en la columna BP y obtener el nombre correspondiente
+        let nombreEncontrado = null;
+        for (const fila of data) {
+          if (fila.BP && fila.BP.toString().trim() === rut) {
+            nombreEncontrado = fila.NOMBRE || null;
+            break;
+          }
+        }
+        
+        if (nombreEncontrado) {
+          contenedor.innerText = nombreEncontrado.toUpperCase();
+          manualSection.style.display = "none";
+        } else {
           contenedor.innerText = "❌ No encontrado.";
           manualSection.style.display = "block";
-        } else {
-          contenedor.innerText = data.NOMBRE || "(sin nombre)";
-          manualSection.style.display = "none";
         }
-      } catch {
+      } catch (error) {
+        console.error("Error al buscar conductor:", error);
         contenedor.innerText = "❌ Error al buscar.";
         manualSection.style.display = "block";
       }
@@ -293,7 +308,7 @@
       familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
       alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
       try {
-        const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
+        const response = await fetch(URL_EQUIPOS + "?tipo=equipo&id=" + encodeURIComponent(id));
         const data = await response.json();
         if (data.error) {
           familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
