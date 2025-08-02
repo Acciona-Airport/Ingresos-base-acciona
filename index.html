@@ -231,7 +231,7 @@
   </div>
 
   <script>
-    const URL_GET = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLitHlTJ_NwIpwQXTodtw0frjDYwBxUw43whVWVQSxvCcRZin3FQ3Nsk1K1tr4A-Qg1Wx4MkUaVD6e0wWaKEwOX-MQMA4BkDO-xO0P3Yag2d_F-J_k27NeA_OwS25Bcb_nLEfgNauLDHu9sxXPSi20ER_M81qhnkoDXjebQUaO0CMk5FQwBNAVqetZ4CJFApk8mmrDjmnl9i18jCO8LXp0597gvalMZniDOifDLbpLQz2u-PvByBNTNdd3UZzw_l7sSA1XMRxZXrusblVtwfe_BaegO9fa87B970xeUE&lib=MlJk7o5nmIiWJ4im1aUYXSDw4QY5T5f8A";
+    const URL_CONDUCTORES = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLitHlTJ_NwIpwQXTodtw0frjDYwBxUw43whVWVQSxvCcRZin3FQ3Nsk1K1tr4A-Qg1Wx4MkUaVD6e0wWaKEwOX-MQMA4BkDO-xO0P3Yag2d_F-J_k27NeA_OwS25Bcb_nLEfgNauLDHu9sxXPSi20ER_M81qhnkoDXjebQUaO0CMk5FQwBNAVqetZ4CJFApk8mmrDjmnl9i18jCO8LXp0597gvalMZniDOifDLbpLQz2u-PvByBNTNdd3UZzw_l7sSA1XMRxZXrusblVtwfe_BaegO9fa87B970xeUE&lib=MlJk7o5nmIiWJ4im1aUYXSDw4QY5T5f8A";
     const URL_EQUIPOS = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjq0KPxo7vMI0Ov5ySf21eyybNSHYUjjarjEZrLoBZYTzjgJOtAbvwXwrd9VRLouSEXc3T0wzTJ2uRf3jI6NrjYqfIf96rJgtBVl-7JFbcCAMirUbJg_aI07C7JGa3L0jLIVD_wTXL7cDq1az5jKC3tV7iA-bxHvfnK8enbr2XF8abkOCTBLHM_KaQQxrlJO5mablmAfWf6zSHtnBvDBSZtNZLfk50Gu4B4e1Re2k0w1vHOhKvaeXs9OAzWJv4oJCcGHJFbqTcMDSq9PSpUqrL6lYlR_jGJobabNejA&lib=MNPJzHQyKPpaHxKg402dYmzw4QY5T5f8A";
 
     function actualizarFechaHora() {
@@ -265,20 +265,21 @@
       contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
       
       try {
-        const response = await fetch(URL_GET);
+        const response = await fetch(URL_CONDUCTORES);
         const data = await response.json();
         
-        // Buscar el RUT en la columna BP y obtener el nombre correspondiente
-        let nombreEncontrado = null;
-        for (const fila of data) {
-          if (fila.BP && fila.BP.toString().trim() === rut) {
-            nombreEncontrado = fila.NOMBRE || null;
-            break;
-          }
+        // Verificar si la respuesta contiene el array de funcionarios
+        if (!data.funcionarios || !Array.isArray(data.funcionarios)) {
+          throw new Error("Formato de datos incorrecto");
         }
         
-        if (nombreEncontrado) {
-          contenedor.innerText = nombreEncontrado.toUpperCase();
+        // Buscar el conductor por RUT en el array de funcionarios
+        const conductorEncontrado = data.funcionarios.find(
+          funcionario => funcionario.BP && funcionario.BP.toString().trim() === rut
+        );
+        
+        if (conductorEncontrado && conductorEncontrado.NOMBRE) {
+          contenedor.innerText = conductorEncontrado.NOMBRE.toUpperCase();
           manualSection.style.display = "none";
         } else {
           contenedor.innerText = "❌ No encontrado.";
@@ -286,7 +287,7 @@
         }
       } catch (error) {
         console.error("Error al buscar conductor:", error);
-        contenedor.innerText = "❌ Error al buscar.";
+        contenedor.innerText = "❌ Error al buscar. Intente más tarde.";
         manualSection.style.display = "block";
       }
     }
