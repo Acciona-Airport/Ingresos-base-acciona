@@ -168,6 +168,14 @@
       color: #2e7d32;
       display: none;
     }
+    .habilitado {
+      color: #c62828;
+      font-weight: bold;
+    }
+    .no-habilitado {
+      color: #2e7d32;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -268,12 +276,10 @@
         const response = await fetch(URL_CONDUCTORES);
         const data = await response.json();
         
-        // Verificar si la respuesta contiene el array de funcionarios
         if (!data.funcionarios || !Array.isArray(data.funcionarios)) {
           throw new Error("Formato de datos incorrecto");
         }
         
-        // Buscar el conductor por RUT en el array de funcionarios
         const conductorEncontrado = data.funcionarios.find(
           funcionario => funcionario.BP && funcionario.BP.toString().trim() === rut
         );
@@ -315,12 +321,10 @@
         const response = await fetch(URL_EQUIPOS);
         const data = await response.json();
         
-        // Verificar si la respuesta contiene el array de equipos
         if (!data.equipos || !Array.isArray(data.equipos)) {
           throw new Error("Formato de datos incorrecto");
         }
         
-        // Buscar el equipo por ID en el array de equipos
         const equipoEncontrado = data.equipos.find(
           equipo => equipo.ID && equipo.ID.toString().trim() === id
         );
@@ -330,25 +334,22 @@
           return;
         }
         
-        // Mostrar los datos del equipo encontrado
         familiaBox.innerText = equipoEncontrado.FAMILIA || "";
         
-        // Determinar el estado de habilitación
         const status = (equipoEncontrado["STATUS ✎"] || "").toLowerCase();
         const observaciones = equipoEncontrado.OBSERVACIONES || "";
         
         if (status.includes("operativo")) {
-          statusBox.innerText = "✅ Habilitado.";
-          obsBox.innerText = observaciones || "Equipo operativo sin observaciones.";
-          alerta.style.display = "none";
-        } else {
-          statusBox.innerText = "❌ No habilitado.";
-          obsBox.innerText = observaciones || "Equipo no habilitado para operación.";
+          statusBox.innerHTML = '<span class="habilitado">❌ No habilitado.</span>';
+          obsBox.innerText = observaciones || "Equipo operativo - No permitido para ingreso.";
           alerta.style.display = "block";
           obsManual.style.display = "block";
+        } else {
+          statusBox.innerHTML = '<span class="no-habilitado">✅ Habilitado.</span>';
+          obsBox.innerText = observaciones || "Equipo habilitado para ingreso.";
+          alerta.style.display = "none";
         }
         
-        // Mostrar alerta amarilla si es necesario (por ejemplo, para equipos de carga)
         if (equipoEncontrado.FAMILIA && equipoEncontrado.FAMILIA.toLowerCase().includes("carga")) {
           alertaAmarilla.style.display = "block";
         }
