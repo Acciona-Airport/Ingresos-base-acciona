@@ -326,7 +326,7 @@
         
         if (status === "operativo") {
           statusBox.innerHTML = '<span class="no-habilitado">❌ No habilitado.</span>';
-          obsBox.innerText = "⚠️ Equipo operativo - No permitido para ingreso";
+          obsBox.innerText = observaciones || "⚠️ Equipo operativo - No permitido para ingreso";
           alerta.style.display = "block";
           obsManual.style.display = "block";
         } else {
