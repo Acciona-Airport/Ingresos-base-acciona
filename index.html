@@ -168,6 +168,14 @@
       color: #2e7d32;
       display: none;
     }
+    .habilitado {
+      color: #2e7d32;
+      font-weight: bold;
+    }
+    .no-habilitado {
+      color: #c62828;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -231,7 +239,7 @@
   </div>
 
   <script>
-    const URL_GET = "https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec";
+    const URL_EQUIPOS = "https://script.google.com/macros/s/AKfycbyE134LOrvHahqKg02x_isnlrFhCgBNZtloOll1oyM-CwQOTDySVkvKzmSno0ypzAJWSw/exec";
 
     function actualizarFechaHora() {
       const now = new Date();
@@ -295,26 +303,44 @@
       familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
       alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
       try {
-        const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
+        const response = await fetch(URL_EQUIPOS);
         const data = await response.json();
-        if (data.error) {
-          familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
-        } else {
-          familiaBox.innerText = data.FAMILIA || "";
-          const status = (data["STATUS ✎"] || "").toLowerCase();
-          if (status === "operativo") {
-            statusBox.innerText = "❌ No habilitado.";
-            obsBox.innerText = "⚠️ Observaciones requeridas";
-            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "block";
-          } else {
-            statusBox.innerText = "✅ Habilitado.";
-            const observaciones = data.OBSERVACIONES?.trim();
-            obsBox.innerText = observaciones || "Equipo fuera de Operación, ya sea por inoperatividad o revisión en taller.";
-            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-          }
+        
+        if (!data.equipos || !Array.isArray(data.equipos)) {
+          throw new Error("Formato de datos incorrecto");
         }
+        
+        const equipoEncontrado = data.equipos.find(
+          equipo => equipo.ID && equipo.ID.toString().trim() === id
+        );
+        
+        if (!equipoEncontrado) {
+          familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
+          return;
+        }
+        
+        familiaBox.innerText = equipoEncontrado.FAMILIA || "";
+        
+        const status = (equipoEncontrado["STATUS ✎"] || "").toLowerCase();
+        const observaciones = equipoEncontrado.OBSERVACIONES || "";
+        
+        if (status === "operativo") {
+          statusBox.innerHTML = '<span class="no-habilitado">❌ No habilitado.</span>';
+          obsBox.innerText = "⚠️ Equipo operativo - No permitido para ingreso";
+          alerta.style.display = "block";
+          obsManual.style.display = "block";
+        } else {
+          statusBox.innerHTML = '<span class="habilitado">✅ Habilitado.</span>';
+          obsBox.innerText = observaciones || "Equipo habilitado para ingreso";
+          alerta.style.display = "none";
+        }
+        
+        if (equipoEncontrado.FAMILIA && equipoEncontrado.FAMILIA.toLowerCase().includes("carga")) {
+          alertaAmarilla.style.display = "block";
+        }
+        
       } catch {
-        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error";
+        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error al buscar";
         alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
       }
     }
