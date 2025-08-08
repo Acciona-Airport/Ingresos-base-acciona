@@ -31,7 +31,7 @@
       margin-bottom: 20px;
     }
     .logo {
-      max-width: 120px;
+      max-width: 200px;
       padding: 6px;
       background-color: rgba(0, 0, 0, 0.05);
       border-radius: 6px;
@@ -168,14 +168,6 @@
       color: #2e7d32;
       display: none;
     }
-    .habilitado {
-      color: #2e7d32;
-      font-weight: bold;
-    }
-    .no-habilitado {
-      color: #c62828;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -188,8 +180,8 @@
     <div class="datetime-box" id="datetime"></div>
 
     <div class="section">
-      <label for="rut-conductor">RUT del conductor:</label>
-      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos y con guion." />
+      <label for="rut-conductor">RUT del conductor: - Ej: 12345678.</label>
+      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos, y sin digito verificador." />
     </div>
 
     <div class="section">
@@ -239,7 +231,8 @@
   </div>
 
   <script>
-    const URL_GET = "https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec";
+    const URL_CONDUCTORES = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLitHlTJ_NwIpwQXTodtw0frjDYwBxUw43whVWVQSxvCcRZin3FQ3Nsk1K1tr4A-Qg1Wx4MkUaVD6e0wWaKEwOX-MQMA4BkDO-xO0P3Yag2d_F-J_k27NeA_OwS25Bcb_nLEfgNauLDHu9sxXPSi20ER_M81qhnkoDXjebQUaO0CMk5FQwBNAVqetZ4CJFApk8mmrDjmnl9i18jCO8LXp0597gvalMZniDOifDLbpLQz2u-PvByBNTNdd3UZzw_l7sSA1XMRxZXrusblVtwfe_BaegO9fa87B970xeUE&lib=MlJk7o5nmIiWJ4im1aUYXSDw4QY5T5f8A";
+    const URL_EQUIPOS = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLja_uowBXn9Cf-OTOIeEpmkgaKc-BWsmrU4oGuzWwg8NVQZcJZLB2es4XKhx9TgsJU4pNFW1x6v4Gmv5SavgB4DpOG5Kvnjna7nhW9J53r3fgtTzEVkZ1iHC_f1qTiBILZxmWfkFrmoQiv7xKhAMXYxuh28pZb0--SZyfk38OwDcRqWpoIozkDgKTWe9YJasBp6GvxDg8yJGvpWjlQ3Xp0Kob7UhlbejMRmEUjKkvTMPRGVkx7csJimDrB92TakqWEM3FCBq5RCNelvOhJYEzcOd8dZc645kIM1wViZ&lib=MNPJzHQyKPpaHxKg402dYmzw4QY5T5f8A";
 
     function actualizarFechaHora() {
       const now = new Date();
@@ -249,12 +242,10 @@
       const dia = now.getDate();
       const mes = meses[now.getMonth()];
       const anio = now.getFullYear();
-      let hora = now.getHours();
+      const hora = String(now.getHours()).padStart(2, '0');
       const minutos = String(now.getMinutes()).padStart(2, '0');
       const segundos = String(now.getSeconds()).padStart(2, '0');
-      const ampm = hora >= 12 ? 'P.M' : 'A.M';
-      hora = hora % 12 || 12;
-      const fechaFormateada = `${diaSemana}, ${dia} de ${mes} de ${anio}, ${hora}:${minutos}:${segundos} ${ampm}`;
+      const fechaFormateada = `${diaSemana}, ${dia} de ${mes} de ${anio}, ${hora}:${minutos}:${segundos}`;
       document.getElementById("datetime").innerText = fechaFormateada;
     }
     setInterval(actualizarFechaHora, 1000);
@@ -264,24 +255,39 @@
       const rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
       const manualSection = document.getElementById("manual-conductor-section");
+      
       if (!rut) {
         contenedor.innerText = "";
         manualSection.style.display = "none";
         return;
       }
+      
       contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
+      
       try {
-        const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
+        const response = await fetch(URL_CONDUCTORES);
         const data = await response.json();
-        if (data.error) {
+        
+        // Verificar si la respuesta contiene el array de funcionarios
+        if (!data.funcionarios || !Array.isArray(data.funcionarios)) {
+          throw new Error("Formato de datos incorrecto");
+        }
+        
+        // Buscar el conductor por RUT en el array de funcionarios
+        const conductorEncontrado = data.funcionarios.find(
+          funcionario => funcionario.BP && funcionario.BP.toString().trim() === rut
+        );
+        
+        if (conductorEncontrado && conductorEncontrado.NOMBRE) {
+          contenedor.innerText = conductorEncontrado.NOMBRE.toUpperCase();
+          manualSection.style.display = "none";
+        } else {
           contenedor.innerText = "❌ No encontrado.";
           manualSection.style.display = "block";
-        } else {
-          contenedor.innerText = data.NOMBRE || "(sin nombre)";
-          manualSection.style.display = "none";
         }
-      } catch {
-        contenedor.innerText = "❌ Error al buscar.";
+      } catch (error) {
+        console.error("Error al buscar conductor:", error);
+        contenedor.innerText = "❌ Error al buscar. Intente más tarde.";
         manualSection.style.display = "block";
       }
     }
@@ -294,39 +300,62 @@
       const obsManual = document.getElementById("observaciones-manual");
       const alerta = document.getElementById("alerta-ingreso");
       const alertaAmarilla = document.getElementById("alerta-carga-extra");
+      
       if (!id) {
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "";
         alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
         return;
       }
+      
       const loading = '<span class="spinner"></span>Buscando...';
       familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
       alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
+      
       try {
-        const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
+        const response = await fetch(URL_EQUIPOS);
         const data = await response.json();
-        if (data.error) {
-          familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
-        } else {
-          familiaBox.innerText = data.FAMILIA || "";
-          const status = (data["STATUS ✎"] || "").toLowerCase();
-          if (status === "operativo") {
-            statusBox.innerHTML = '<span class="no-habilitado">❌ No habilitado.</span>';
-            obsBox.innerText = "⚠️ Observaciones requeridas";
-            alerta.style.display = "block";
-            obsManual.style.display = "block";
-          } else {
-            statusBox.innerHTML = '<span class="habilitado">✅ Habilitado.</span>';
-            const observaciones = data.OBSERVACIONES?.trim();
-            obsBox.innerText = observaciones || "Equipo fuera de Operación, ya sea por inoperatividad o revisión en taller.";
-            alerta.style.display = "none";
-          }
-          if (data.FAMILIA && data.FAMILIA.toLowerCase().includes("carga")) {
-            alertaAmarilla.style.display = "block";
-          }
+        
+        // Verificar si la respuesta contiene el array de equipos
+        if (!data.equipos || !Array.isArray(data.equipos)) {
+          throw new Error("Formato de datos incorrecto");
         }
-      } catch {
-        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error";
+        
+        // Buscar el equipo por ID en el array de equipos
+        const equipoEncontrado = data.equipos.find(
+          equipo => equipo.ID && equipo.ID.toString().trim() === id
+        );
+        
+        if (!equipoEncontrado) {
+          familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
+          return;
+        }
+        
+        // Mostrar los datos del equipo encontrado
+        familiaBox.innerText = equipoEncontrado.FAMILIA || "";
+        
+        // Determinar el estado de habilitación
+        const status = (equipoEncontrado["STATUS ✎"] || "").toLowerCase();
+        const observaciones = equipoEncontrado.OBSERVACIONES || "";
+        
+        if (status.includes("operativo")) {
+          statusBox.innerText = "✅ Habilitado.";
+          obsBox.innerText = observaciones || "Equipo operativo sin observaciones.";
+          alerta.style.display = "none";
+        } else {
+          statusBox.innerText = "❌ No habilitado.";
+          obsBox.innerText = observaciones || "Equipo no habilitado para operación.";
+          alerta.style.display = "block";
+          obsManual.style.display = "block";
+        }
+        
+        // Mostrar alerta amarilla si es necesario (por ejemplo, para equipos de carga)
+        if (equipoEncontrado.FAMILIA && equipoEncontrado.FAMILIA.toLowerCase().includes("carga")) {
+          alertaAmarilla.style.display = "block";
+        }
+        
+      } catch (error) {
+        console.error("Error al buscar equipo:", error);
+        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error al buscar";
         alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
       }
     }
