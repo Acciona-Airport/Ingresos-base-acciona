@@ -31,7 +31,7 @@
       margin-bottom: 20px;
     }
     .logo {
-      max-width: 200px;
+      max-width: 120px;
       padding: 6px;
       background-color: rgba(0, 0, 0, 0.05);
       border-radius: 6px;
@@ -180,8 +180,8 @@
     <div class="datetime-box" id="datetime"></div>
 
     <div class="section">
-      <label for="rut-conductor">RUT del conductor: - Ej: 12345678.</label>
-      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos, y sin digito verificador." />
+      <label for="rut-conductor">RUT del conductor:</label>
+      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos y con guion." />
     </div>
 
     <div class="section">
@@ -231,8 +231,7 @@
   </div>
 
   <script>
-    const URL_CONDUCTORES = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLitHlTJ_NwIpwQXTodtw0frjDYwBxUw43whVWVQSxvCcRZin3FQ3Nsk1K1tr4A-Qg1Wx4MkUaVD6e0wWaKEwOX-MQMA4BkDO-xO0P3Yag2d_F-J_k27NeA_OwS25Bcb_nLEfgNauLDHu9sxXPSi20ER_M81qhnkoDXjebQUaO0CMk5FQwBNAVqetZ4CJFApk8mmrDjmnl9i18jCO8LXp0597gvalMZniDOifDLbpLQz2u-PvByBNTNdd3UZzw_l7sSA1XMRxZXrusblVtwfe_BaegO9fa87B970xeUE&lib=MlJk7o5nmIiWJ4im1aUYXSDw4QY5T5f8A";
-    const URL_EQUIPOS = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLja_uowBXn9Cf-OTOIeEpmkgaKc-BWsmrU4oGuzWwg8NVQZcJZLB2es4XKhx9TgsJU4pNFW1x6v4Gmv5SavgB4DpOG5Kvnjna7nhW9J53r3fgtTzEVkZ1iHC_f1qTiBILZxmWfkFrmoQiv7xKhAMXYxuh28pZb0--SZyfk38OwDcRqWpoIozkDgKTWe9YJasBp6GvxDg8yJGvpWjlQ3Xp0Kob7UhlbejMRmEUjKkvTMPRGVkx7csJimDrB92TakqWEM3FCBq5RCNelvOhJYEzcOd8dZc645kIM1wViZ&lib=MNPJzHQyKPpaHxKg402dYmzw4QY5T5f8A";
+    const URL_GET = "https://script.google.com/macros/s/AKfycbx5RL_GDtFwsKcMWyBYLwi2sdXtnkh9eXzdVs73jTS6zt3oAu9dmQwSeiyx43Tkt_QfeQ/exec";
 
     function actualizarFechaHora() {
       const now = new Date();
@@ -242,10 +241,12 @@
       const dia = now.getDate();
       const mes = meses[now.getMonth()];
       const anio = now.getFullYear();
-      const hora = String(now.getHours()).padStart(2, '0');
+      let hora = now.getHours();
       const minutos = String(now.getMinutes()).padStart(2, '0');
       const segundos = String(now.getSeconds()).padStart(2, '0');
-      const fechaFormateada = `${diaSemana}, ${dia} de ${mes} de ${anio}, ${hora}:${minutos}:${segundos}`;
+      const ampm = hora >= 12 ? 'P.M' : 'A.M';
+      hora = hora % 12 || 12;
+      const fechaFormateada = `${diaSemana}, ${dia} de ${mes} de ${anio}, ${hora}:${minutos}:${segundos} ${ampm}`;
       document.getElementById("datetime").innerText = fechaFormateada;
     }
     setInterval(actualizarFechaHora, 1000);
@@ -255,39 +256,24 @@
       const rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
       const manualSection = document.getElementById("manual-conductor-section");
-      
       if (!rut) {
         contenedor.innerText = "";
         manualSection.style.display = "none";
         return;
       }
-      
       contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
-      
       try {
-        const response = await fetch(URL_CONDUCTORES);
+        const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
         const data = await response.json();
-        
-        // Verificar si la respuesta contiene el array de funcionarios
-        if (!data.funcionarios || !Array.isArray(data.funcionarios)) {
-          throw new Error("Formato de datos incorrecto");
-        }
-        
-        // Buscar el conductor por RUT en el array de funcionarios
-        const conductorEncontrado = data.funcionarios.find(
-          funcionario => funcionario.BP && funcionario.BP.toString().trim() === rut
-        );
-        
-        if (conductorEncontrado && conductorEncontrado.NOMBRE) {
-          contenedor.innerText = conductorEncontrado.NOMBRE.toUpperCase();
-          manualSection.style.display = "none";
-        } else {
+        if (data.error) {
           contenedor.innerText = "❌ No encontrado.";
           manualSection.style.display = "block";
+        } else {
+          contenedor.innerText = data.NOMBRE || "(sin nombre)";
+          manualSection.style.display = "none";
         }
-      } catch (error) {
-        console.error("Error al buscar conductor:", error);
-        contenedor.innerText = "❌ Error al buscar. Intente más tarde.";
+      } catch {
+        contenedor.innerText = "❌ Error al buscar.";
         manualSection.style.display = "block";
       }
     }
@@ -300,62 +286,35 @@
       const obsManual = document.getElementById("observaciones-manual");
       const alerta = document.getElementById("alerta-ingreso");
       const alertaAmarilla = document.getElementById("alerta-carga-extra");
-      
       if (!id) {
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "";
         alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
         return;
       }
-      
       const loading = '<span class="spinner"></span>Buscando...';
       familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
       alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
-      
       try {
-        const response = await fetch(URL_EQUIPOS);
+        const response = await fetch(URL_GET + "?tipo=equipo&id=" + encodeURIComponent(id));
         const data = await response.json();
-        
-        // Verificar si la respuesta contiene el array de equipos
-        if (!data.equipos || !Array.isArray(data.equipos)) {
-          throw new Error("Formato de datos incorrecto");
-        }
-        
-        // Buscar el equipo por ID en el array de equipos
-        const equipoEncontrado = data.equipos.find(
-          equipo => equipo.ID && equipo.ID.toString().trim() === id
-        );
-        
-        if (!equipoEncontrado) {
+        if (data.error) {
           familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ No encontrado";
-          return;
-        }
-        
-        // Mostrar los datos del equipo encontrado
-        familiaBox.innerText = equipoEncontrado.FAMILIA || "";
-        
-        // Determinar el estado de habilitación
-        const status = (equipoEncontrado["STATUS ✎"] || "").toLowerCase();
-        const observaciones = equipoEncontrado.OBSERVACIONES || "";
-        
-        if (status.includes("operativo")) {
-          statusBox.innerText = "✅ Habilitado.";
-          obsBox.innerText = observaciones || "Equipo operativo sin observaciones.";
-          alerta.style.display = "none";
         } else {
-          statusBox.innerText = "❌ No habilitado.";
-          obsBox.innerText = observaciones || "Equipo no habilitado para operación.";
-          alerta.style.display = "block";
-          obsManual.style.display = "block";
+          familiaBox.innerText = data.FAMILIA || "";
+          const status = (data["STATUS ✎"] || "").toLowerCase();
+          if (status === "operativo") {
+            statusBox.innerText = "❌ No habilitado.";
+            obsBox.innerText = "⚠️ Observaciones requeridas";
+            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "block";
+          } else {
+            statusBox.innerText = "✅ Habilitado.";
+            const observaciones = data.OBSERVACIONES?.trim();
+            obsBox.innerText = observaciones || "Equipo fuera de Operación, ya sea por inoperatividad o revisión en taller.";
+            alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
+          }
         }
-        
-        // Mostrar alerta amarilla si es necesario (por ejemplo, para equipos de carga)
-        if (equipoEncontrado.FAMILIA && equipoEncontrado.FAMILIA.toLowerCase().includes("carga")) {
-          alertaAmarilla.style.display = "block";
-        }
-        
-      } catch (error) {
-        console.error("Error al buscar equipo:", error);
-        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error al buscar";
+      } catch {
+        familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error";
         alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
       }
     }
