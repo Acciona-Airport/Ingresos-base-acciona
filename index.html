@@ -216,7 +216,7 @@
       <label>¿Habilitado para ingresar?</label>
       <div class="input-estilo" id="status-equipo"></div>
       <div class="alert-box alert-red" id="alerta-ingreso">❌ Equipo no habilitado para el ingreso, contacte a Control Flota 📞 Tel: 56 9 3860 1767.</div>
-      <div class="alert-box alert-yellow" id="alerta-carga-extra">⚠️ Ojo: Este vehículo solo puede ingresar a la Base Acciona para abastecerse de combustible o para realizar una carga eléctrica.</div>
+      <div class="alert-box alert-yellow" id="alerta-carga-extra">Ojo: Este equipo podría realizar ingreso solo a reabastecer combustible o a realizar carga eléctrica.</div>
     </div>
 
     <div class="section">
@@ -328,11 +328,13 @@
           statusBox.innerHTML = '<span class="no-habilitado">❌ No habilitado.</span>';
           obsBox.innerText = observaciones || "⚠️ Equipo operativo - No permitido para ingreso";
           alerta.style.display = "block";
+          alertaAmarilla.style.display = "block";
           obsManual.style.display = "block";
         } else {
           statusBox.innerHTML = '<span class="habilitado">✅ Habilitado.</span>';
           obsBox.innerText = observaciones || "Equipo habilitado para ingreso";
           alerta.style.display = "none";
+          alertaAmarilla.style.display = "none";
         }
         
         if (equipoEncontrado.FAMILIA && equipoEncontrado.FAMILIA.toLowerCase().includes("carga")) {
