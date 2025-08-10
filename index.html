@@ -240,6 +240,7 @@
 
   <script>
     const URL_EQUIPOS = "https://script.google.com/macros/s/AKfycbyE134LOrvHahqKg02x_isnlrFhCgBNZtloOll1oyM-CwQOTDySVkvKzmSno0ypzAJWSw/exec";
+    const URL_CONDUCTORES = "https://script.google.com/macros/s/AKfycbzGspx2IXG_ut8YxGyJqNLQr7kYN6sEovKJ9XGKwQHXfE1XoH19LmH6-mlmQ7r9LvcpRw/exec";
 
     function actualizarFechaHora() {
       const now = new Date();
@@ -271,13 +272,22 @@
       }
       contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
       try {
-        const response = await fetch(URL_GET + "?tipo=personal&id=" + encodeURIComponent(rut));
+        const response = await fetch(URL_CONDUCTORES);
         const data = await response.json();
-        if (data.error) {
+        
+        if (!data.funcionarios || !Array.isArray(data.funcionarios)) {
+          throw new Error("Formato de datos incorrecto");
+        }
+        
+        const conductorEncontrado = data.funcionarios.find(
+          conductor => conductor.BP && conductor.BP.toString().trim() === rut
+        );
+        
+        if (!conductorEncontrado) {
           contenedor.innerText = "❌ No encontrado.";
           manualSection.style.display = "block";
         } else {
-          contenedor.innerText = data.NOMBRE || "(sin nombre)";
+          contenedor.innerText = conductorEncontrado.NOMBRE || "(sin nombre)";
           manualSection.style.display = "none";
         }
       } catch {
@@ -420,4 +430,3 @@
   </script>
 </body>
 </html>
-
