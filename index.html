@@ -176,6 +176,37 @@
       color: #c62828;
       font-weight: bold;
     }
+    
+    /* Nuevos estilos para los checkboxes */
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      background-color: #f8f8f8;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .checkbox-container:hover {
+      background-color: #f0f0f0;
+    }
+    .checkbox-container input[type="checkbox"] {
+      margin-right: 6px;
+      cursor: pointer;
+    }
+    .checkbox-label {
+      font-size: 13px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -222,6 +253,19 @@
     <div class="section">
       <label>Observaciones:</label>
       <div class="input-estilo" id="observaciones-equipo"></div>
+      
+      <!-- Nuevos checkboxes para carga de combustible y eléctrica -->
+      <div class="checkbox-group" id="checkbox-group" style="display:none;">
+        <div class="checkbox-container">
+          <input type="checkbox" id="checkbox-combustible" onchange="actualizarObservaciones()">
+          <label for="checkbox-combustible" class="checkbox-label">Carga de combustible</label>
+        </div>
+        <div class="checkbox-container">
+          <input type="checkbox" id="checkbox-electrica" onchange="actualizarObservaciones()">
+          <label for="checkbox-electrica" class="checkbox-label">Carga eléctrica</label>
+        </div>
+      </div>
+      
       <textarea class="input-estilo input-manual" id="observaciones-manual" placeholder="Escriba observaciones aquí." style="display:none; margin-top: 10px;" oninput="this.value = this.value.toUpperCase();"></textarea>
     </div>
 
@@ -304,14 +348,20 @@
       const obsManual = document.getElementById("observaciones-manual");
       const alerta = document.getElementById("alerta-ingreso");
       const alertaAmarilla = document.getElementById("alerta-carga-extra");
+      const checkboxGroup = document.getElementById("checkbox-group");
+      
+      // Resetear checkboxes
+      document.getElementById("checkbox-combustible").checked = false;
+      document.getElementById("checkbox-electrica").checked = false;
+      
       if (!id) {
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "";
-        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
+        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = checkboxGroup.style.display = "none";
         return;
       }
       const loading = '<span class="spinner"></span>Buscando...';
       familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
-      alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
+      alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = checkboxGroup.style.display = "none";
       try {
         const response = await fetch(URL_EQUIPOS);
         const data = await response.json();
@@ -340,11 +390,14 @@
           alerta.style.display = "block";
           alertaAmarilla.style.display = "block";
           obsManual.style.display = "block";
+          checkboxGroup.style.display = "flex";
         } else {
           statusBox.innerHTML = '<span class="habilitado">✅ Habilitado. ✅</span>';
           obsBox.innerText = observaciones || "✅ Equipo habilitado para ingreso. ✅";
           alerta.style.display = "none";
           alertaAmarilla.style.display = "none";
+          obsManual.style.display = "none";
+          checkboxGroup.style.display = "none";
         }
         
         if (equipoEncontrado.FAMILIA && equipoEncontrado.FAMILIA.toLowerCase().includes("carga")) {
@@ -353,7 +406,34 @@
         
       } catch {
         familiaBox.innerText = statusBox.innerText = obsBox.innerText = "❌ Error al buscar";
-        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = "none";
+        alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = checkboxGroup.style.display = "none";
+      }
+    }
+
+    // Función para actualizar observaciones según checkboxes seleccionados
+    function actualizarObservaciones() {
+      const checkboxCombustible = document.getElementById("checkbox-combustible");
+      const checkboxElectrica = document.getElementById("checkbox-electrica");
+      const obsManual = document.getElementById("observaciones-manual");
+      
+      let textoObservaciones = "";
+      
+      if (checkboxCombustible.checked && checkboxElectrica.checked) {
+        textoObservaciones = "INGRESA A CARGA DE COMBUSTIBLE Y CARGA ELÉCTRICA";
+      } else if (checkboxCombustible.checked) {
+        textoObservaciones = "INGRESA A CARGA DE COMBUSTIBLE";
+      } else if (checkboxElectrica.checked) {
+        textoObservaciones = "INGRESA A CARGA ELÉCTRICA";
+      }
+      
+      // Solo actualizar si el usuario no ha escrito algo manualmente
+      // o si está vacío o coincide con uno de los textos predefinidos
+      const textoActual = obsManual.value.trim();
+      if (textoActual === "" || 
+          textoActual === "INGRESA A CARGA DE COMBUSTIBLE" || 
+          textoActual === "INGRESA A CARGA ELÉCTRICA" || 
+          textoActual === "INGRESA A CARGA DE COMBUSTIBLE Y CARGA ELÉCTRICA") {
+        obsManual.value = textoObservaciones;
       }
     }
 
@@ -430,6 +510,3 @@
   </script>
 </body>
 </html>
-
-
-
