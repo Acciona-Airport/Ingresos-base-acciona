@@ -200,6 +200,7 @@
       flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 10px;
+      margin-top: 15px; /* Espacio entre observaciones y checkboxes */
     }
     .checkbox-container {
       display: flex;
@@ -211,7 +212,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       flex: 1;
-      min-width: 160px;
+      min-width: 140px;
     }
     .checkbox-container:hover {
       background-color: #f0f0f0;
@@ -221,13 +222,19 @@
       cursor: pointer;
       width: 16px;
       height: 16px;
+      flex-shrink: 0;
     }
     .checkbox-label {
       font-size: 13px;
       font-weight: bold;
       color: #333;
       cursor: pointer;
-      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .checkbox-label span:first-child {
+      margin-bottom: 2px;
     }
   </style>
 </head>
@@ -280,7 +287,10 @@
       <div class="checkbox-group" id="checkbox-group" style="display:none;">
         <div class="checkbox-container">
           <input type="checkbox" id="checkbox-combustible" onchange="actualizarObservaciones()">
-          <label for="checkbox-combustible" class="checkbox-label">Carga de combustible</label>
+          <label for="checkbox-combustible" class="checkbox-label">
+            <span>Carga de</span>
+            <span>combustible</span>
+          </label>
         </div>
         <div class="checkbox-container">
           <input type="checkbox" id="checkbox-electrica" onchange="actualizarObservaciones()">
