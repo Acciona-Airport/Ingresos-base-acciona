@@ -271,13 +271,12 @@
       font-weight: bold;
     }
     
-    /* Nuevos estilos para los checkboxes */
     .checkbox-group {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 10px;
-      margin-top: 15px; /* Espacio entre observaciones y checkboxes */
+      margin-top: 15px;
     }
     .checkbox-container {
       display: flex;
@@ -316,7 +315,6 @@
   </style>
 </head>
 <body>
-  <!-- Overlay de login -->
   <div class="login-overlay" id="login-overlay">
     <div class="login-box">
       <h2>Identificación de Guardia</h2>
@@ -374,7 +372,6 @@
       <label>Observaciones:</label>
       <div class="input-estilo" id="observaciones-equipo"></div>
       
-      <!-- Nuevos checkboxes para carga de combustible y eléctrica -->
       <div class="checkbox-group" id="checkbox-group" style="display:none;">
         <div class="checkbox-container">
           <input type="checkbox" id="checkbox-combustible" onchange="actualizarObservaciones()">
@@ -407,32 +404,25 @@
   </div>
 
   <script>
-    // URLs de las APIs
     const URL_EQUIPOS = "https://script.google.com/macros/s/AKfycbyE134LOrvHahqKg02x_isnlrFhCgBNZtloOll1oyM-CwQOTDySVkvKzmSno0ypzAJWSw/exec";
     const URL_CONDUCTORES = "https://script.google.com/macros/s/AKfycbzGspx2IXG_ut8YxGyJqNLQr7kYN6sEovKJ9XGKwQHXfE1XoH19LmH6-mlmQ7r9LvcpRw/exec";
 
-    // Función para inicializar la aplicación
     function inicializarApp() {
-      // Verificar si ya hay un guardia guardado
       const guardiaGuardado = localStorage.getItem('guardiaAcciona');
       
       if (guardiaGuardado) {
-        // Si hay un guardia guardado, ocultar el login y mostrar el nombre
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('guardia-header').style.display = 'flex';
         document.getElementById('nombre-guardia-activo').textContent = guardiaGuardado;
         document.getElementById('guardia').value = guardiaGuardado;
       } else {
-        // Si no hay guardia, mostrar el login
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('guardia-header').style.display = 'none';
       }
       
-      // Iniciar la actualización de fecha/hora
       actualizarFechaHora();
     }
 
-    // Función para guardar el nombre del guardia
     function guardarGuardia() {
       const nombreGuardia = document.getElementById('nombre-guardia-input').value.trim().toUpperCase();
       
@@ -441,17 +431,14 @@
         return;
       }
       
-      // Guardar en localStorage
       localStorage.setItem('guardiaAcciona', nombreGuardia);
       
-      // Actualizar la interfaz
       document.getElementById('login-overlay').style.display = 'none';
       document.getElementById('guardia-header').style.display = 'flex';
       document.getElementById('nombre-guardia-activo').textContent = nombreGuardia;
       document.getElementById('guardia').value = nombreGuardia;
     }
 
-    // Función para desconectar al guardia
     function desconectarGuardia() {
       if (confirm('¿Está seguro de que desea desconectarse?')) {
         localStorage.removeItem('guardiaAcciona');
@@ -525,7 +512,6 @@
       const alertaAmarilla = document.getElementById("alerta-carga-extra");
       const checkboxGroup = document.getElementById("checkbox-group");
       
-      // Resetear checkboxes
       document.getElementById("checkbox-combustible").checked = false;
       document.getElementById("checkbox-electrica").checked = false;
       
@@ -585,7 +571,6 @@
       }
     }
 
-    // Función para actualizar observaciones según checkboxes seleccionados
     function actualizarObservaciones() {
       const checkboxCombustible = document.getElementById("checkbox-combustible");
       const checkboxElectrica = document.getElementById("checkbox-electrica");
@@ -601,8 +586,6 @@
         textoObservaciones = "INGRESA A CARGA ELÉCTRICA";
       }
       
-      // Solo actualizar si el usuario no ha escrito algo manualmente
-      // o si está vacío o coincide con uno de los textos predefinidos
       const textoActual = obsManual.value.trim();
       if (textoActual === "" || 
           textoActual === "INGRESA A CARGA DE COMBUSTIBLE" || 
@@ -612,7 +595,6 @@
       }
     }
 
-    // Función para reiniciar el formulario
     function reiniciarFormulario() {
       if (confirm("¿Está seguro de que desea reiniciar el formulario? Se perderán todos los datos ingresados.")) {
         location.reload();
@@ -637,7 +619,6 @@
     }
 
     function enviarFormulario() {
-      // Verificar que haya un guardia conectado
       const guardiaGuardado = localStorage.getItem('guardiaAcciona');
       if (!guardiaGuardado) {
         alert('Por favor, identifíquese como guardia primero');
@@ -698,7 +679,6 @@
       });
     }
 
-    // Inicializar la aplicación cuando se carga la página
     window.onload = inicializarApp;
   </script>
 </body>
