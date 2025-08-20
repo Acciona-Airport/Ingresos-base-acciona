@@ -24,6 +24,83 @@
       max-width: 480px;
       width: 100%;
       border: 1px solid #ccc;
+      position: relative;
+    }
+    .guardia-header {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      right: 0;
+      background-color: #c62828;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+    .btn-desconectar {
+      background-color: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.3s;
+    }
+    .btn-desconectar:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+    .login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+    .login-box {
+      background-color: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-box h2 {
+      margin-top: 0;
+      color: #c62828;
+      font-size: 20px;
+    }
+    .login-input {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .login-btn {
+      background-color: #c62828;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+    .login-btn:hover {
+      background-color: #b71c1c;
     }
     .logo-wrapper {
       display: flex;
@@ -239,7 +316,21 @@
   </style>
 </head>
 <body>
+  <!-- Overlay de login -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-box">
+      <h2>Identificación de Guardia</h2>
+      <input type="text" class="login-input" id="nombre-guardia-input" placeholder="Ingrese su nombre completo" oninput="this.value = this.value.toUpperCase();" />
+      <button class="login-btn" onclick="guardarGuardia()">Ingresar</button>
+    </div>
+  </div>
+
   <div class="container">
+    <div class="guardia-header" id="guardia-header" style="display: none;">
+      <span>Guardia: <span id="nombre-guardia-activo"></span></span>
+      <button class="btn-desconectar" onclick="desconectarGuardia()">Desconectar</button>
+    </div>
+    
     <div class="logo-wrapper">
       <img class="logo" src="https://raw.githubusercontent.com/acciona-airport/Zarpes-acciona-aero/main/LogoAcciona2.png" alt="Logo Acciona" />
     </div>
@@ -316,8 +407,60 @@
   </div>
 
   <script>
+    // URLs de las APIs
     const URL_EQUIPOS = "https://script.google.com/macros/s/AKfycbyE134LOrvHahqKg02x_isnlrFhCgBNZtloOll1oyM-CwQOTDySVkvKzmSno0ypzAJWSw/exec";
     const URL_CONDUCTORES = "https://script.google.com/macros/s/AKfycbzGspx2IXG_ut8YxGyJqNLQr7kYN6sEovKJ9XGKwQHXfE1XoH19LmH6-mlmQ7r9LvcpRw/exec";
+
+    // Función para inicializar la aplicación
+    function inicializarApp() {
+      // Verificar si ya hay un guardia guardado
+      const guardiaGuardado = localStorage.getItem('guardiaAcciona');
+      
+      if (guardiaGuardado) {
+        // Si hay un guardia guardado, ocultar el login y mostrar el nombre
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('guardia-header').style.display = 'flex';
+        document.getElementById('nombre-guardia-activo').textContent = guardiaGuardado;
+        document.getElementById('guardia').value = guardiaGuardado;
+      } else {
+        // Si no hay guardia, mostrar el login
+        document.getElementById('login-overlay').style.display = 'flex';
+        document.getElementById('guardia-header').style.display = 'none';
+      }
+      
+      // Iniciar la actualización de fecha/hora
+      actualizarFechaHora();
+    }
+
+    // Función para guardar el nombre del guardia
+    function guardarGuardia() {
+      const nombreGuardia = document.getElementById('nombre-guardia-input').value.trim().toUpperCase();
+      
+      if (!nombreGuardia) {
+        alert('Por favor, ingrese su nombre');
+        return;
+      }
+      
+      // Guardar en localStorage
+      localStorage.setItem('guardiaAcciona', nombreGuardia);
+      
+      // Actualizar la interfaz
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('guardia-header').style.display = 'flex';
+      document.getElementById('nombre-guardia-activo').textContent = nombreGuardia;
+      document.getElementById('guardia').value = nombreGuardia;
+    }
+
+    // Función para desconectar al guardia
+    function desconectarGuardia() {
+      if (confirm('¿Está seguro de que desea desconectarse?')) {
+        localStorage.removeItem('guardiaAcciona');
+        document.getElementById('guardia-header').style.display = 'none';
+        document.getElementById('login-overlay').style.display = 'flex';
+        document.getElementById('nombre-guardia-input').value = '';
+        document.getElementById('guardia').value = '';
+      }
+    }
 
     function actualizarFechaHora() {
       const now = new Date();
@@ -336,7 +479,6 @@
       document.getElementById("datetime").innerText = fechaFormateada;
     }
     setInterval(actualizarFechaHora, 1000);
-    actualizarFechaHora();
 
     async function buscarDatosConductor() {
       const rut = document.getElementById("rut-conductor").value.trim();
@@ -495,6 +637,14 @@
     }
 
     function enviarFormulario() {
+      // Verificar que haya un guardia conectado
+      const guardiaGuardado = localStorage.getItem('guardiaAcciona');
+      if (!guardiaGuardado) {
+        alert('Por favor, identifíquese como guardia primero');
+        document.getElementById('login-overlay').style.display = 'flex';
+        return;
+      }
+      
       const rutInput = document.getElementById("rut-conductor");
       const nombreManualInput = document.getElementById("nombre-manual");
       const datosConductor = document.getElementById("datos-conductor").innerText.trim();
@@ -547,6 +697,9 @@
         console.error(error);
       });
     }
+
+    // Inicializar la aplicación cuando se carga la página
+    window.onload = inicializarApp;
   </script>
 </body>
 </html>
