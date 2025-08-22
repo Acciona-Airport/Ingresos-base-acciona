@@ -315,21 +315,31 @@
 
     /* ESTILOS MODIFICADOS PARA LOS MENSAJES DE CARGA */
     .loading-indicator {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      margin-left: 8px;
+      justify-content: center;
       color: #c62828;
-      font-size: 16px; /* Aumentado de 12px a 16px */
-      font-weight: bold; /* Añadido para mayor visibilidad */
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      background-color: #fff9e6;
+      border: 1px solid #ffeeba;
     }
     .small-spinner {
-      width: 16px; /* Aumentado de 12px a 16px */
-      height: 16px; /* Aumentado de 12px a 16px */
+      width: 16px;
+      height: 16px;
       border: 2px solid rgba(198, 40, 40, 0.2);
       border-top: 2px solid #c62828;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin-right: 8px; /* Aumentado de 4px a 8px */
+      margin-right: 8px;
+    }
+    .status-ready {
+      color: #2e7d32;
+      background-color: #e6ffed;
+      border: 1px solid #b7eb8f;
     }
   </style>
 </head>
@@ -355,13 +365,15 @@
     <h1>Formulario de Ingreso de Equipos (Base Acciona)</h1>
     <div class="datetime-box" id="datetime"></div>
 
+    <!-- Mensaje de estado de carga -->
+    <div id="status-message" class="loading-indicator" style="display: none;">
+      <span class="small-spinner"></span> <span id="loading-text"></span>
+    </div>
+
     <div class="section">
       <label for="rut-conductor">RUT del conductor:</label>
       <div style="position: relative;">
         <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos y con guion." />
-        <span id="rut-loading" class="loading-indicator" style="display: none;">
-          <span class="small-spinner"></span> <span id="loading-text"></span>
-        </span>
       </div>
     </div>
 
@@ -387,7 +399,7 @@
 
     <div class="section">
       <label>¿Habilitado para ingresar?</label>
-      <div class="input-estilo" id="status-equipo"></div>
+      <div class="input-estipo" id="status-equipo"></div>
       <div class="alert-box alert-red" id="alerta-ingreso">Equipo no habilitado para el ingreso, contacte a Control Flota 📞 Tel: 56 9 3860 1767.</div>
       <div class="alert-box alert-yellow" id="alerta-carga-extra">⚠️ Ojo: Este equipo podría realizar ingreso solo a reabastecer combustible o a realizar carga eléctrica. ⚠️</div>
     </div>
@@ -432,6 +444,7 @@
     const URL_CONDUCTORES = "https://script.google.com/macros/s/AKfycbzGspx2IXG_ut8YxGyJqNLQr7kYN6sEovKJ9XGKwQHXfE1XoH19LmH6-mlmQ7r9LvcpRw/exec";
     const EQUIPOS_HABILITADOS = ["6136", "6137", "6138", "6139", "6148"];
     let loadingInterval;
+    let datosPrecargados = false;
 
     function inicializarApp() {
       const guardiaGuardado = localStorage.getItem('guardiaAcciona');
@@ -441,6 +454,9 @@
         document.getElementById('guardia-header').style.display = 'flex';
         document.getElementById('nombre-guardia-activo').textContent = guardiaGuardado;
         document.getElementById('guardia').value = guardiaGuardado;
+        
+        // Iniciar precarga de datos después de que el guardia se identifique
+        precargarDatosConductores();
       } else {
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('guardia-header').style.display = 'none';
@@ -463,6 +479,9 @@
       document.getElementById('guardia-header').style.display = 'flex';
       document.getElementById('nombre-guardia-activo').textContent = nombreGuardia;
       document.getElementById('guardia').value = nombreGuardia;
+      
+      // Iniciar precarga de datos después de que el guardia se identifique
+      precargarDatosConductores();
     }
 
     function desconectarGuardia() {
@@ -474,6 +493,7 @@
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('nombre-guardia-input').value = '';
         document.getElementById('guardia').value = '';
+        datosPrecargados = false;
       }
     }
 
@@ -496,15 +516,36 @@
     setInterval(actualizarFechaHora, 1000);
 
     function iniciarMensajesCarga() {
-      const estados = ["Ingresando al servidor...", "Accediendo a la base de datos...", "Filtrando funcionarios...", "Realizando cruce de información...", "Descargando reporte..."];
+      const estados = [
+        "Conectando con el servidor...", 
+        "Accediendo a la base de datos...", 
+        "Sincronizando información...", 
+        "Optimizando consultas...",
+        "Base de datos lista para consultas ✓"
+      ];
       let indice = 0;
       
+      const statusMessage = document.getElementById("status-message");
+      statusMessage.style.display = "flex";
       document.getElementById("loading-text").textContent = estados[indice];
       
       loadingInterval = setInterval(() => {
-        indice = (indice + 1) % estados.length;
-        document.getElementById("loading-text").textContent = estados[indice];
-      }, 7000);
+        indice = indice + 1;
+        
+        if (indice < estados.length - 1) {
+          document.getElementById("loading-text").textContent = estados[indice];
+        } else if (indice === estados.length - 1) {
+          // Último mensaje en verde
+          document.getElementById("loading-text").textContent = estados[indice];
+          statusMessage.classList.add("status-ready");
+          clearInterval(loadingInterval);
+          
+          // Ocultar después de 3 segundos
+          setTimeout(() => {
+            statusMessage.style.display = "none";
+          }, 3000);
+        }
+      }, 1500);
     }
 
     function detenerMensajesCarga() {
@@ -512,6 +553,41 @@
         clearInterval(loadingInterval);
         loadingInterval = null;
       }
+      document.getElementById("status-message").style.display = "none";
+    }
+
+    async function precargarDatosConductores() {
+      // Verificar si ya tenemos datos en caché
+      const timestamp = localStorage.getItem('conductoresTimestamp');
+      const now = new Date().getTime();
+      const twelveHours = 12 * 60 * 60 * 1000;
+      
+      if (timestamp && (now - parseInt(timestamp)) < twelveHours) {
+        const conductoresData = localStorage.getItem('conductoresData');
+        if (conductoresData) {
+          try {
+            JSON.parse(conductoresData);
+            datosPrecargados = true;
+            return; // Ya tenemos datos actualizados
+          } catch (e) {
+            localStorage.removeItem('conductoresData');
+            localStorage.removeItem('conductoresTimestamp');
+          }
+        }
+      }
+      
+      // Mostrar mensajes de carga
+      iniciarMensajesCarga();
+      
+      // Cargar datos en segundo plano
+      setTimeout(async () => {
+        try {
+          await cargarTodosLosConductores();
+          datosPrecargados = true;
+        } catch (error) {
+          console.error("Error al precargar conductores:", error);
+        }
+      }, 0);
     }
 
     async function cargarTodosLosConductores() {
@@ -551,7 +627,6 @@
       const rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
       const manualSection = document.getElementById("manual-conductor-section");
-      const loadingIndicator = document.getElementById("rut-loading");
       
       if (!rut) {
         contenedor.innerText = "";
@@ -559,11 +634,20 @@
         return;
       }
       
-      loadingIndicator.style.display = "inline-flex";
-      contenedor.innerText = "";
-      manualSection.style.display = "none";
-      
-      iniciarMensajesCarga();
+      // Si los datos no están precargados, mostrar mensaje
+      if (!datosPrecargados) {
+        contenedor.innerText = "⏳ Cargando base de datos, espere...";
+        manualSection.style.display = "none";
+        
+        // Esperar a que los datos estén listos
+        const checkDataLoaded = setInterval(() => {
+          if (datosPrecargados) {
+            clearInterval(checkDataLoaded);
+            buscarDatosConductor(); // Volver a ejecutar la búsqueda
+          }
+        }, 500);
+        return;
+      }
       
       const timestamp = localStorage.getItem('conductoresTimestamp');
       const now = new Date().getTime();
@@ -585,45 +669,29 @@
       
       if (!data) {
         try {
-          setTimeout(async () => {
-            try {
-              data = await cargarTodosLosConductores();
-              procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator);
-            } catch {
-              contenedor.innerText = "❌ Error al buscar.";
-              manualSection.style.display = "block";
-              loadingIndicator.style.display = "none";
-              detenerMensajesCarga();
-            }
-          }, 0);
-          return;
+          contenedor.innerText = "⏳ Cargando datos...";
+          data = await cargarTodosLosConductores();
+          procesarDatosConductor(rut, data, contenedor, manualSection);
         } catch {
-          loadingIndicator.style.display = "none";
           contenedor.innerText = "❌ Error al buscar.";
           manualSection.style.display = "block";
-          detenerMensajesCarga();
-          return;
         }
+        return;
       }
       
-      procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator);
+      procesarDatosConductor(rut, data, contenedor, manualSection);
     }
 
-    function procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator) {
+    function procesarDatosConductor(rut, data, contenedor, manualSection) {
       if (!data || !Array.isArray(data)) {
         contenedor.innerText = "❌ Error en formato de datos";
         manualSection.style.display = "block";
-        loadingIndicator.style.display = "none";
-        detenerMensajesCarga();
         return;
       }
       
       const conductorEncontrado = data.find(
         conductor => conductor.BP && conductor.BP.toString().trim() === rut
       );
-      
-      loadingIndicator.style.display = "none";
-      detenerMensajesCarga();
       
       if (!conductorEncontrado) {
         contenedor.innerText = "❌ No encontrado.";
@@ -828,4 +896,3 @@
   </script>
 </body>
 </html>
-
