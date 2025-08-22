@@ -97,7 +97,7 @@
       cursor: pointer;
       font-size: 16px;
       width: 100%;
-      transition: background-color 0.3s;
+      transition: background-color 极;
     }
     .login-btn:hover {
       background-color: #b71c1c;
@@ -197,7 +197,7 @@
     .btn:hover {
       background-color: #b71c1c;
       transform: scale(1.03);
-      box-shadow: 0 0 12px rgba(255, 0, 0, 0.2);
+      box-shadow: 0 0 12px rgba(255, 0, 极, 0.2);
     }
     .btn-reset {
       background-color: #666;
@@ -208,7 +208,7 @@
       cursor: pointer;
       font-size: 15px;
       transition: background-color 0.3s ease, transform 0.2s ease;
-      width: 100%;
+      width: 极;
       margin-top: 10px;
     }
     .btn-reset:hover {
@@ -282,7 +282,7 @@
       display: flex;
       align-items: center;
       background-color: #f8f8f8;
-      padding: 8px 12px;
+      padding: 8px 极;
       border-radius: 6px;
       border: 1px solid #ddd;
       cursor: pointer;
@@ -313,23 +313,32 @@
       margin-bottom: 2px;
     }
 
-    /* ESTILOS MODIFICADOS PARA LOS MENSAJES DE CARGA */
     .loading-indicator {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      margin-left: 8px;
+      justify-content: center;
       color: #c62828;
-      font-size: 16px; /* Aumentado de 12px a 16px */
-      font-weight: bold; /* Añadido para mayor visibilidad */
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      background-color: #fff9e6;
+      border: 1px solid #ffeeba;
     }
     .small-spinner {
-      width: 16px; /* Aumentado de 12px a 16px */
-      height: 16px; /* Aumentado de 12px a 16px */
+      width: 16px;
+      height: 16px;
       border: 2px solid rgba(198, 40, 40, 0.2);
       border-top: 2px solid #c62828;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin-right: 8px; /* Aumentado de 4px a 8px */
+      margin-right: 8px;
+    }
+    .status-ready {
+      color: #2e7d32;
+      background-color: #e6ffed;
+      border: 1px solid #b7eb8f;
     }
   </style>
 </head>
@@ -355,24 +364,8 @@
     <h1>Formulario de Ingreso de Equipos (Base Acciona)</h1>
     <div class="datetime-box" id="datetime"></div>
 
-    <div class="section">
-      <label for="rut-conductor">RUT del conductor:</label>
-      <div style="position: relative;">
-        <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos y con guion." />
-        <span id="rut-loading" class="loading-indicator" style="display: none;">
-          <span class="small-spinner"></span> <span id="loading-text"></span>
-        </span>
-      </div>
-    </div>
-
-    <div class="section">
-      <label>Nombre conductor:</label>
-      <div class="input-estilo" id="datos-conductor"></div>
-    </div>
-
-    <div class="section" id="manual-conductor-section" style="display:none;">
-      <label for="nombre-manual">Ingrese nombre manualmente:</label>
-      <input type="text" class="input-estilo input-manual" id="nombre-manual" placeholder="Nombre del conductor" oninput="this.value = this.value.toUpperCase();" />
+    <div id="status-message" class="loading-indicator" style="display: none;">
+      <span class="small-spinner"></span> <span id="loading-text"></span>
     </div>
 
     <div class="section">
@@ -390,6 +383,23 @@
       <div class="input-estilo" id="status-equipo"></div>
       <div class="alert-box alert-red" id="alerta-ingreso">Equipo no habilitado para el ingreso, contacte a Control Flota 📞 Tel: 56 9 3860 1767.</div>
       <div class="alert-box alert-yellow" id="alerta-carga-extra">⚠️ Ojo: Este equipo podría realizar ingreso solo a reabastecer combustible o a realizar carga eléctrica. ⚠️</div>
+    </div>
+
+    <div class="section">
+      <label for="rut-conductor">RUT del conductor:</label>
+      <div style="position: relative;">
+        <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos y con guion." />
+      </div>
+    </div>
+
+    <div class="section">
+      <label>Nombre conductor:</label>
+      <div class="input-estilo" id="datos-conductor"></div>
+    </div>
+
+    <div class="section" id="manual-conductor-section" style="display:none;">
+      <label for="nombre-manual">Ingrese nombre manualmente:</label>
+      <input type="text" class="input-estilo input-manual" id="nombre-manual" placeholder="Nombre del conductor" oninput="this.value = this.value.toUpperCase();" />
     </div>
 
     <div class="section">
@@ -432,6 +442,7 @@
     const URL_CONDUCTORES = "https://script.google.com/macros/s/AKfycbzGspx2IXG_ut8YxGyJqNLQr7kYN6sEovKJ9XGKwQHXfE1XoH19LmH6-mlmQ7r9LvcpRw/exec";
     const EQUIPOS_HABILITADOS = ["6136", "6137", "6138", "6139", "6148"];
     let loadingInterval;
+    let datosPrecargados = false;
 
     function inicializarApp() {
       const guardiaGuardado = localStorage.getItem('guardiaAcciona');
@@ -441,6 +452,29 @@
         document.getElementById('guardia-header').style.display = 'flex';
         document.getElementById('nombre-guardia-activo').textContent = guardiaGuardado;
         document.getElementById('guardia').value = guardiaGuardado;
+        
+        const timestamp = localStorage.getItem('conductoresTimestamp');
+        const now = new Date().getTime();
+        const twelveHours = 12 * 60 * 60 * 1000;
+        
+        if (timestamp && (now - parseInt(timestamp)) < twelveHours) {
+          const conductoresData = localStorage.getItem('conductoresData');
+          if (conductoresData) {
+            try {
+              JSON.parse(conductoresData);
+              datosPrecargados = true;
+              mostrarMensajeFinal();
+            } catch (e) {
+              localStorage.removeItem('conductoresData');
+              localStorage.removeItem('conductoresTimestamp');
+              precargarDatosConductores();
+            }
+          } else {
+            precargarDatosConductores();
+          }
+        } else {
+          precargarDatosConductores();
+        }
       } else {
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('guardia-header').style.display = 'none';
@@ -463,6 +497,8 @@
       document.getElementById('guardia-header').style.display = 'flex';
       document.getElementById('nombre-guardia-activo').textContent = nombreGuardia;
       document.getElementById('guardia').value = nombreGuardia;
+      
+      precargarDatosConductores();
     }
 
     function desconectarGuardia() {
@@ -474,13 +510,14 @@
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('nombre-guardia-input').value = '';
         document.getElementById('guardia').value = '';
+        datosPrecargados = false;
       }
     }
 
     function actualizarFechaHora() {
       const now = new Date();
       const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','极','Diciembre'];
       const diaSemana = dias[now.getDay()];
       const dia = now.getDate();
       const mes = meses[now.getMonth()];
@@ -496,21 +533,83 @@
     setInterval(actualizarFechaHora, 1000);
 
     function iniciarMensajesCarga() {
-      const estados = ["Ingresando al servidor...", "Accediendo a la base de datos...", "Filtrando funcionarios...", "Realizando cruce de información...", "Descargando reporte..."];
+      const estados = [
+        "Conectando con el servidor...", 
+        "Accediendo a la base de datos...", 
+        "Descargando información de conductores...", 
+        "Procesando datos...",
+        "Base de datos lista para consultas ✓"
+      ];
       let indice = 0;
       
+      const statusMessage = document.getElementById("status-message");
+      statusMessage.style.display = "flex";
       document.getElementById("loading-text").textContent = estados[indice];
       
       loadingInterval = setInterval(() => {
-        indice = (indice + 1) % estados.length;
-        document.getElementById("loading-text").textContent = estados[indice];
-      }, 7000);
+        indice = indice + 1;
+        
+        if (indice < estados.length - 1) {
+          document.getElementById("loading-text").textContent = estados[indice];
+        } else if (indice === estados.length - 1) {
+          document.getElementById("loading-text").textContent = estados[indice];
+          statusMessage.classList.add("status-ready");
+          clearInterval(loadingInterval);
+          
+          setTimeout(() => {
+            statusMessage.style.display = "none";
+          }, 3000);
+        }
+      }, 1500);
+    }
+
+    function mostrarMensajeFinal() {
+      const statusMessage = document.getElementById("status-message");
+      statusMessage.style.display = "flex";
+      statusMessage.classList.add("status-ready");
+      document.getElementById("loading-text").textContent = "Base de datos lista para consultas ✓";
+      
+      setTimeout(() => {
+        statusMessage.style.display = "none";
+      }, 3000);
     }
 
     function detenerMensajesCarga() {
       if (loadingInterval) {
         clearInterval(loadingInterval);
         loadingInterval = null;
+      }
+      document.getElementById("status-message").style.display = "none";
+    }
+
+    async function precargarDatosConductores() {
+      const timestamp = localStorage.getItem('conductoresTimestamp');
+      const now = new Date().getTime();
+      const twelveHours = 12 * 60 * 60 * 1000;
+      
+      if (timestamp && (now - parseInt(timestamp)) < twelveHours) {
+        const conductoresData = localStorage.getItem('conductoresData');
+        if (conductoresData) {
+          try {
+            JSON.parse(conductoresData);
+            datosPrecargados = true;
+            mostrarMensajeFinal();
+            return;
+          } catch (e) {
+            localStorage.removeItem('conductoresData');
+            localStorage.removeItem('conductoresTimestamp');
+          }
+        }
+      }
+      
+      iniciarMensajesCarga();
+      
+      try {
+        await cargarTodosLosConductores();
+        datosPrecargados = true;
+      } catch (error) {
+        console.error("Error al precargar conductores:", error);
+        detenerMensajesCarga();
       }
     }
 
@@ -547,93 +646,6 @@
       }
     }
 
-    async function buscarDatosConductor() {
-      const rut = document.getElementById("rut-conductor").value.trim();
-      const contenedor = document.getElementById("datos-conductor");
-      const manualSection = document.getElementById("manual-conductor-section");
-      const loadingIndicator = document.getElementById("rut-loading");
-      
-      if (!rut) {
-        contenedor.innerText = "";
-        manualSection.style.display = "none";
-        return;
-      }
-      
-      loadingIndicator.style.display = "inline-flex";
-      contenedor.innerText = "";
-      manualSection.style.display = "none";
-      
-      iniciarMensajesCarga();
-      
-      const timestamp = localStorage.getItem('conductoresTimestamp');
-      const now = new Date().getTime();
-      const twelveHours = 12 * 60 * 60 * 1000;
-      
-      let data = null;
-      
-      if (timestamp && (now - parseInt(timestamp)) < twelveHours) {
-        const conductoresData = localStorage.getItem('conductoresData');
-        if (conductoresData) {
-          try {
-            data = JSON.parse(conductoresData);
-          } catch (e) {
-            localStorage.removeItem('conductoresData');
-            localStorage.removeItem('conductoresTimestamp');
-          }
-        }
-      }
-      
-      if (!data) {
-        try {
-          setTimeout(async () => {
-            try {
-              data = await cargarTodosLosConductores();
-              procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator);
-            } catch {
-              contenedor.innerText = "❌ Error al buscar.";
-              manualSection.style.display = "block";
-              loadingIndicator.style.display = "none";
-              detenerMensajesCarga();
-            }
-          }, 0);
-          return;
-        } catch {
-          loadingIndicator.style.display = "none";
-          contenedor.innerText = "❌ Error al buscar.";
-          manualSection.style.display = "block";
-          detenerMensajesCarga();
-          return;
-        }
-      }
-      
-      procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator);
-    }
-
-    function procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator) {
-      if (!data || !Array.isArray(data)) {
-        contenedor.innerText = "❌ Error en formato de datos";
-        manualSection.style.display = "block";
-        loadingIndicator.style.display = "none";
-        detenerMensajesCarga();
-        return;
-      }
-      
-      const conductorEncontrado = data.find(
-        conductor => conductor.BP && conductor.BP.toString().trim() === rut
-      );
-      
-      loadingIndicator.style.display = "none";
-      detenerMensajesCarga();
-      
-      if (!conductorEncontrado) {
-        contenedor.innerText = "❌ No encontrado.";
-        manualSection.style.display = "block";
-      } else {
-        contenedor.innerText = conductorEncontrado.NOMBRE || "(sin nombre)";
-        manualSection.style.display = "none";
-      }
-    }
-
     async function buscarDatosEquipo() {
       const id = document.getElementById("numero-equipo").value.trim();
       const familiaBox = document.getElementById("familia-equipo");
@@ -667,6 +679,10 @@
       const loading = '<span class="spinner"></span>Buscando...';
       familiaBox.innerHTML = statusBox.innerHTML = obsBox.innerHTML = loading;
       alerta.style.display = alertaAmarilla.style.display = obsManual.style.display = checkboxGroup.style.display = "none";
+      
+      if (!datosPrecargados) {
+        precargarDatosConductores();
+      }
       
       try {
         const response = await fetch(URL_EQUIPOS);
@@ -716,6 +732,83 @@
       }
     }
 
+    async function buscarDatosConductor() {
+      const rut = document.getElementById("rut-conductor").value.trim();
+      const contenedor = document.getElementById("datos-conductor");
+      const manualSection = document.getElementById("manual-conductor-section");
+      
+      if (!rut) {
+        contenedor.innerText = "";
+        manualSection.style.display = "none";
+        return;
+      }
+      
+      if (!datosPrecargados) {
+        contenedor.innerText = "⏳ Cargando base de datos, espere...";
+        manualSection.style.display = "none";
+        
+        const checkDataLoaded = setInterval(() => {
+          if (datosPrecargados) {
+            clearInterval(checkDataLoaded);
+            buscarDatosConductor();
+          }
+        }, 500);
+        return;
+      }
+      
+      const timestamp = localStorage.getItem('conductoresTimestamp');
+      const now = new Date().getTime();
+      const twelveHours = 12 * 60 * 60 * 1000;
+      
+      let data = null;
+      
+      if (timestamp && (now - parseInt(timestamp)) < twelveHours) {
+        const conductoresData = localStorage.getItem('conductoresData');
+        if (conductoresData) {
+          try {
+            data = JSON.parse(conductoresData);
+          } catch (e) {
+            localStorage.removeItem('conductoresData');
+            localStorage.removeItem('conductoresTimestamp');
+          }
+        }
+      }
+      
+      if (!data) {
+        try {
+          contenedor.innerText = "⏳ Cargando datos...";
+          data = await cargarTodosLosConductores();
+          procesarDatosConductor(rut, data, contenedor, manualSection);
+        } catch {
+          contenedor.innerText = "❌ Error al buscar.";
+          manualSection.style.display = "block";
+        }
+        return;
+      }
+      
+      procesarDatosConductor(rut, data, contenedor, manualSection);
+    }
+
+    function procesarDatosConductor(rut, data, contenedor, manualSection) {
+      if (!data || !Array.isArray(data)) {
+        contenedor.innerText = "❌ Error en formato de datos";
+        manualSection.style.display = "block";
+        return;
+      }
+      
+      const conductorEncontrado = data.find(
+        conductor => conductor.BP && conductor.BP.toString().trim() === rut
+      );
+      
+      if (!conductorEncontrado) {
+        contenedor.innerText = "❌ No encontrado.";
+        manualSection.style.display = "block";
+      } else {
+        contenedor.innerText = conductorEncontrado.NOMBRE || "(sin nombre)";
+        manualSection.style.display = "none";
+      }
+    }
+
     function actualizarObservaciones() {
       const checkboxCombustible = document.getElementById("checkbox-combustible");
       const checkboxElectrica = document.getElementById("checkbox-electrica");
@@ -726,9 +819,9 @@
       if (checkboxCombustible.checked && checkboxElectrica.checked) {
         textoObservaciones = "INGRESA A CARGA DE COMBUSTIBLE Y CARGA ELÉCTRICA";
       } else if (checkboxCombustible.checked) {
-        textoObservaciones = "INGRESARÁ A REALIZAR CARGA DE COMBUSTIBLE";
+        textoObservaciones = "INGRESA A CARGA DE COMBUSTIBLE";
       } else if (checkboxElectrica.checked) {
-        textoObservaciones = "INGRESARÁ A REALIZAR CARGA ELÉCTRICA";
+        textoObservaciones = "INGRESA A CARGA ELÉCTRICA";
       }
       
       const textoActual = obsManual.value.trim();
@@ -808,7 +901,7 @@
       overlay.style.display = "flex";
       mensaje.style.display = "none";
 
-      fetch("https://docs.google.com/forms/d/e/1FAIpQLSf3ADvFtCeFHlm7RzOtNuuuxZkzjCgFnrvw7KM2d3DIPOGumg/formResponse", {
+      fetch("https://docs.google.com/forms/d/e/1FAIpQLSf極ADvFtCeFHlm7RzOtNuuuxZkzjCgFnrvw7KM2d3DIPOGumg/formResponse", {
         method: "POST",
         mode: "no-cors",
         body: formData
@@ -828,4 +921,5 @@
   </script>
 </body>
 </html>
+
 
