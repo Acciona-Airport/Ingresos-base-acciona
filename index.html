@@ -204,7 +204,7 @@
       color: #fff;
       border: none;
       padding: 14px 20px;
-      borderRadius: 8px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 15px;
       transition: background-color 0.3s ease, transform 0.2s ease;
@@ -444,6 +444,7 @@
       if (confirm('¿Está seguro de que desea desconectarse?')) {
         localStorage.removeItem('guardiaAcciona');
         localStorage.removeItem('conductoresData');
+        localStorage.removeItem('conductoresTimestamp');
         document.getElementById('guardia-header').style.display = 'none';
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('nombre-guardia-input').value = '';
@@ -469,34 +470,78 @@
     }
     setInterval(actualizarFechaHora, 1000);
 
+    async function cargarTodosLosConductores() {
+      const overlay = document.getElementById("overlay");
+      overlay.style.display = "flex";
+      
+      try {
+        let allConductores = [];
+        let page = 1;
+        let hasMoreData = true;
+        
+        while (hasMoreData) {
+          const response = await fetch(`${URL_CONDUCTORES}?page=${page}`);
+          const data = await response.json();
+          
+          if (data.funcionarios && Array.isArray(data.funcionarios) && data.funcionarios.length > 0) {
+            allConductores = allConductores.concat(data.funcionarios);
+            page++;
+            
+            if (data.funcionarios.length < 500) {
+              hasMoreData = false;
+            }
+          } else {
+            hasMoreData = false;
+          }
+        }
+        
+        const timestamp = new Date().getTime();
+        localStorage.setItem('conductoresData', JSON.stringify(allConductores));
+        localStorage.setItem('conductoresTimestamp', timestamp);
+        
+        overlay.style.display = "none";
+        return allConductores;
+      } catch (error) {
+        overlay.style.display = "none";
+        console.error("Error al cargar conductores:", error);
+        throw error;
+      }
+    }
+
     async function buscarDatosConductor() {
       const rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
       const manualSection = document.getElementById("manual-conductor-section");
+      
       if (!rut) {
         contenedor.innerText = "";
         manualSection.style.display = "none";
         return;
       }
       
-      const conductoresData = localStorage.getItem('conductoresData');
+      contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
+      
+      const timestamp = localStorage.getItem('conductoresTimestamp');
+      const now = new Date().getTime();
+      const twelveHours = 12 * 60 * 60 * 1000;
+      
       let data = null;
       
-      if (conductoresData) {
-        try {
-          data = JSON.parse(conductoresData);
-        } catch (e) {
-          localStorage.removeItem('conductoresData');
+      if (timestamp && (now - parseInt(timestamp)) < twelveHours) {
+        const conductoresData = localStorage.getItem('conductoresData');
+        if (conductoresData) {
+          try {
+            data = JSON.parse(conductoresData);
+          } catch (e) {
+            localStorage.removeItem('conductoresData');
+            localStorage.removeItem('conductoresTimestamp');
+          }
         }
       }
       
-      contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
-      
       if (!data) {
         try {
-          const response = await fetch(URL_CONDUCTORES);
-          data = await response.json();
-          localStorage.setItem('conductoresData', JSON.stringify(data));
+          data = await cargarTodosLosConductores();
         } catch {
           contenedor.innerText = "❌ Error al buscar.";
           manualSection.style.display = "block";
@@ -504,13 +549,13 @@
         }
       }
       
-      if (!data.funcionarios || !Array.isArray(data.funcionarios)) {
+      if (!data || !Array.isArray(data)) {
         contenedor.innerText = "❌ Error en formato de datos";
         manualSection.style.display = "block";
         return;
       }
       
-      const conductorEncontrado = data.funcionarios.find(
+      const conductorEncontrado = data.find(
         conductor => conductor.BP && conductor.BP.toString().trim() === rut
       );
       
