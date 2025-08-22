@@ -98,7 +98,7 @@
       cursor: pointer;
       font-size: 16px;
       width: 100%;
-      transition: background-color 极;
+      transition: background-color 0.3s;
     }
     .login-btn:hover {
       background-color: #b71c1c;
@@ -198,7 +198,7 @@
     .btn:hover {
       background-color: #b71c1c;
       transform: scale(1.03);
-      box-shadow: 0 0 12px rgba(255, 0, 极, 0.2);
+      box-shadow: 0 0 12px rgba(255, 0, 0, 0.2);
     }
     .btn-reset {
       background-color: #666;
@@ -208,14 +208,14 @@
       border-radius: 8px;
       cursor: pointer;
       font-size: 15px;
-      transition: background-color 极;
-      width: 极;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      width: 100%;
       margin-top: 10px;
     }
     .btn-reset:hover {
       background-color: #555;
       transform: scale(1.03);
-      box-shadow: 0 0 12px rgba(0, 0, 极, 0.2);
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
     }
     .spinner {
       display: inline-block;
@@ -283,7 +283,7 @@
       display: flex;
       align-items: center;
       background-color: #f8f8f8;
-      padding: 8px 极;
+      padding: 8px 12px;
       border-radius: 6px;
       border: 1px solid #ddd;
       cursor: pointer;
@@ -314,19 +314,7 @@
       margin-bottom: 2px;
     }
 
-    .loading-indicator {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #c62828;
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 10px;
-      padding: 8px;
-      border-radius: 6px;
-      background-color: #fff9e6;
-      border: 1px solid #ffeeba;
-    }
+    /* Eliminado el estilo .loading-indicator ya que no se usará más */
     .small-spinner {
       width: 16px;
       height: 16px;
@@ -365,9 +353,7 @@
     <h1>Formulario de Ingreso de Equipos (Base Acciona)</h1>
     <div class="datetime-box" id="datetime"></div>
 
-    <div id="status-message" class="loading-indicator" style="display: none;">
-      <span class="small-spinner"></span> <span id="loading-text"></span>
-    </div>
+    <!-- Eliminado el div de status-message que mostraba los mensajes de base de datos -->
 
     <div class="section">
       <label for="numero-equipo">Número de equipo:</label>
@@ -442,7 +428,6 @@
     const URL_EQUIPOS = "https://script.google.com/macros/s/AKfycbyE134LOrvHahqKg02x_isnlrFhCgBNZtloOll1oyM-CwQOTDySVkvKzmSno0ypzAJWSw/exec";
     const URL_CONDUCTORES = "https://script.google.com/macros/s/AKfycbzGspx2IXG_ut8YxGyJqNLQr7kYN6sEovKJ9XGKwQHXfE1XoH19LmH6-mlmQ7r9LvcpRw/exec";
     const EQUIPOS_HABILITADOS = ["6136", "6137", "6138", "6139", "6148"];
-    let loadingInterval;
     let datosPrecargados = false;
     let conductoresCache = null; // Almacenará todos los datos de conductores
 
@@ -466,7 +451,6 @@
             try {
               conductoresCache = JSON.parse(conductoresData);
               datosPrecargados = true;
-              mostrarMensajeFinal();
             } catch (e) {
               localStorage.removeItem('conductoresData');
               localStorage.removeItem('conductoresTimestamp');
@@ -521,7 +505,7 @@
     function actualizarFechaHora() {
       const now = new Date();
       const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','极','Diciembre'];
+      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
       const diaSemana = dias[now.getDay()];
       const dia = now.getDate();
       const mes = meses[now.getMonth()];
@@ -536,56 +520,6 @@
     }
     setInterval(actualizarFechaHora, 1000);
 
-    function iniciarMensajesCarga() {
-      const estados = [
-        "Conectando con el servidor...", 
-        "Accediendo a la base de datos...", 
-        "Descargando información de conductores...", 
-        "Procesando datos...",
-        "Base de datos lista para consultas ✓"
-      ];
-      let indice = 0;
-      
-      const statusMessage = document.getElementById("status-message");
-      statusMessage.style.display = "flex";
-      document.getElementById("loading-text").textContent = estados[indice];
-      
-      loadingInterval = setInterval(() => {
-        indice = indice + 1;
-        
-        if (indice < estados.length - 1) {
-          document.getElementById("loading-text").textContent = estados[indice];
-        } else if (indice === estados.length - 1) {
-          document.getElementById("loading-text").textContent = estados[indice];
-          statusMessage.classList.add("status-ready");
-          clearInterval(loadingInterval);
-          
-          setTimeout(() => {
-            statusMessage.style.display = "none";
-          }, 3000);
-        }
-      }, 1500);
-    }
-
-    function mostrarMensajeFinal() {
-      const statusMessage = document.getElementById("status-message");
-      statusMessage.style.display = "flex";
-      statusMessage.classList.add("status-ready");
-      document.getElementById("loading-text").textContent = "Base de datos lista para consultas ✓";
-      
-      setTimeout(() => {
-        statusMessage.style.display = "none";
-      }, 3000);
-    }
-
-    function detenerMensajesCarga() {
-      if (loadingInterval) {
-        clearInterval(loadingInterval);
-        loadingInterval = null;
-      }
-      document.getElementById("status-message").style.display = "none";
-    }
-
     async function precargarDatosConductores() {
       const timestamp = localStorage.getItem('conductoresTimestamp');
       const now = new Date().getTime();
@@ -597,7 +531,6 @@
           try {
             conductoresCache = JSON.parse(conductoresData);
             datosPrecargados = true;
-            mostrarMensajeFinal();
             return;
           } catch (e) {
             localStorage.removeItem('conductoresData');
@@ -606,14 +539,11 @@
         }
       }
       
-      iniciarMensajesCarga();
-      
       try {
         await cargarTodosLosConductores();
         datosPrecargados = true;
       } catch (error) {
         console.error("Error al precargar conductores:", error);
-        detenerMensajesCarga();
       }
     }
 
@@ -902,5 +832,3 @@
   </script>
 </body>
 </html>
-
-
