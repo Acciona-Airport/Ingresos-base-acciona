@@ -312,6 +312,24 @@
     .checkbox-label span:first-child {
       margin-bottom: 2px;
     }
+
+    /* Estilos para el indicador de carga en línea */
+    .loading-indicator {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 8px;
+      color: #c62828;
+      font-size: 12px;
+    }
+    .small-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(198, 40, 40, 0.2);
+      border-top: 2px solid #c62828;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 4px;
+    }
   </style>
 </head>
 <body>
@@ -338,7 +356,12 @@
 
     <div class="section">
       <label for="rut-conductor">RUT del conductor:</label>
-      <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos y con guion." />
+      <div style="position: relative;">
+        <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos y con guion." />
+        <span id="rut-loading" class="loading-indicator" style="display: none;">
+          <span class="small-spinner"></span> Buscando...
+        </span>
+      </div>
     </div>
 
     <div class="section">
@@ -471,9 +494,6 @@
     setInterval(actualizarFechaHora, 1000);
 
     async function cargarTodosLosConductores() {
-      const overlay = document.getElementById("overlay");
-      overlay.style.display = "flex";
-      
       try {
         let allConductores = [];
         let page = 1;
@@ -499,10 +519,8 @@
         localStorage.setItem('conductoresData', JSON.stringify(allConductores));
         localStorage.setItem('conductoresTimestamp', timestamp);
         
-        overlay.style.display = "none";
         return allConductores;
       } catch (error) {
-        overlay.style.display = "none";
         console.error("Error al cargar conductores:", error);
         throw error;
       }
@@ -512,6 +530,7 @@
       const rut = document.getElementById("rut-conductor").value.trim();
       const contenedor = document.getElementById("datos-conductor");
       const manualSection = document.getElementById("manual-conductor-section");
+      const loadingIndicator = document.getElementById("rut-loading");
       
       if (!rut) {
         contenedor.innerText = "";
@@ -519,7 +538,10 @@
         return;
       }
       
-      contenedor.innerHTML = '<span class="spinner"></span>Buscando...';
+      // Mostrar indicador de carga junto al campo
+      loadingIndicator.style.display = "inline-flex";
+      contenedor.innerText = "";
+      manualSection.style.display = "none";
       
       const timestamp = localStorage.getItem('conductoresTimestamp');
       const now = new Date().getTime();
@@ -541,23 +563,43 @@
       
       if (!data) {
         try {
-          data = await cargarTodosLosConductores();
+          // Cargar datos en segundo plano sin bloquear la interfaz
+          setTimeout(async () => {
+            try {
+              data = await cargarTodosLosConductores();
+              procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator);
+            } catch {
+              contenedor.innerText = "❌ Error al buscar.";
+              manualSection.style.display = "block";
+              loadingIndicator.style.display = "none";
+            }
+          }, 0);
+          return;
         } catch {
+          loadingIndicator.style.display = "none";
           contenedor.innerText = "❌ Error al buscar.";
           manualSection.style.display = "block";
           return;
         }
       }
       
+      // Si ya tenemos datos, procesar inmediatamente
+      procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator);
+    }
+
+    function procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator) {
       if (!data || !Array.isArray(data)) {
         contenedor.innerText = "❌ Error en formato de datos";
         manualSection.style.display = "block";
+        loadingIndicator.style.display = "none";
         return;
       }
       
       const conductorEncontrado = data.find(
         conductor => conductor.BP && conductor.BP.toString().trim() === rut
       );
+      
+      loadingIndicator.style.display = "none";
       
       if (!conductorEncontrado) {
         contenedor.innerText = "❌ No encontrado.";
