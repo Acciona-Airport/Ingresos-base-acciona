@@ -139,7 +139,7 @@
       font-size: 14px;
       background-color: #fafafa;
       color: #000;
-      transition: border-color 0.3s, box-shadow 0.3s;
+      transition: border-color 极, box-shadow 0.3s;
       resize: none;
     }
     .input-estilo:focus {
@@ -288,7 +288,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       flex: 1;
-      min-width: 140px;
+      minimal-width: 140px;
     }
     .checkbox-container:hover {
       background-color: #f0f0f0;
@@ -313,7 +313,7 @@
       margin-bottom: 2px;
     }
 
-    /* ESTILOS MODIFICADOS PARA LOS MENSAJES DE CARGA */
+    /* ESTILOS PARA LOS MENSAJES DE CARGA */
     .loading-indicator {
       display: flex;
       align-items: center;
@@ -399,7 +399,7 @@
 
     <div class="section">
       <label>¿Habilitado para ingresar?</label>
-      <div class="input-estipo" id="status-equipo"></div>
+      <div class="input-estilo" id="status-equipo"></div>
       <div class="alert-box alert-red" id="alerta-ingreso">Equipo no habilitado para el ingreso, contacte a Control Flota 📞 Tel: 56 9 3860 1767.</div>
       <div class="alert-box alert-yellow" id="alerta-carga-extra">⚠️ Ojo: Este equipo podría realizar ingreso solo a reabastecer combustible o a realizar carga eléctrica. ⚠️</div>
     </div>
@@ -455,8 +455,29 @@
         document.getElementById('nombre-guardia-activo').textContent = guardiaGuardado;
         document.getElementById('guardia').value = guardiaGuardado;
         
-        // Iniciar precarga de datos después de que el guardia se identifique
-        precargarDatosConductores();
+        // Verificar si ya tenemos datos precargados
+        const timestamp = localStorage.getItem('conductoresTimestamp');
+        const now = new Date().getTime();
+        const twelveHours = 12 * 60 * 60 * 1000;
+        
+        if (timestamp && (now - parseInt(timestamp)) < twelveHours) {
+          const conductoresData = localStorage.getItem('conductoresData');
+          if (conductoresData) {
+            try {
+              JSON.parse(conductoresData);
+              datosPrecargados = true;
+              mostrarMensajeFinal();
+            } catch (e) {
+              localStorage.removeItem('conductoresData');
+              localStorage.removeItem('conductoresTimestamp');
+              precargarDatosConductores();
+            }
+          } else {
+            precargarDatosConductores();
+          }
+        } else {
+          precargarDatosConductores();
+        }
       } else {
         document.getElementById('login-overlay').style.display = 'flex';
         document.getElementById('guardia-header').style.display = 'none';
@@ -519,8 +540,8 @@
       const estados = [
         "Conectando con el servidor...", 
         "Accediendo a la base de datos...", 
-        "Sincronizando información...", 
-        "Optimizando consultas...",
+        "Descargando información de conductores...", 
+        "Procesando datos...",
         "Base de datos lista para consultas ✓"
       ];
       let indice = 0;
@@ -548,6 +569,18 @@
       }, 1500);
     }
 
+    function mostrarMensajeFinal() {
+      const statusMessage = document.getElementById("status-message");
+      statusMessage.style.display = "flex";
+      statusMessage.classList.add("status-ready");
+      document.getElementById("loading-text").textContent = "Base de datos lista para consultas ✓";
+      
+      // Ocultar después de 3 segundos
+      setTimeout(() => {
+        statusMessage.style.display = "none";
+      }, 3000);
+    }
+
     function detenerMensajesCarga() {
       if (loadingInterval) {
         clearInterval(loadingInterval);
@@ -568,6 +601,7 @@
           try {
             JSON.parse(conductoresData);
             datosPrecargados = true;
+            mostrarMensajeFinal();
             return; // Ya tenemos datos actualizados
           } catch (e) {
             localStorage.removeItem('conductoresData');
@@ -580,14 +614,13 @@
       iniciarMensajesCarga();
       
       // Cargar datos en segundo plano
-      setTimeout(async () => {
-        try {
-          await cargarTodosLosConductores();
-          datosPrecargados = true;
-        } catch (error) {
-          console.error("Error al precargar conductores:", error);
-        }
-      }, 0);
+      try {
+        await cargarTodosLosConductores();
+        datosPrecargados = true;
+      } catch (error) {
+        console.error("Error al precargar conductores:", error);
+        detenerMensajesCarga();
+      }
     }
 
     async function cargarTodosLosConductores() {
@@ -862,7 +895,7 @@
       if (habilitado.includes("No habilitado") && !observaciones) return mostrarErrorCampo(observacionesManualInput, "⚠️ Favor completar este campo");
       if (!guardia) return mostrarErrorCampo(guardiaInput, "⚠️ Favor completar este campo");
 
-      const formData = new FormData();
+       const formData = new FormData();
       formData.append("entry.675531615", rut);
       formData.append("entry.851525222", nombre);
       formData.append("entry.1413809422", equipo);
@@ -896,3 +929,5 @@
   </script>
 </body>
 </html>
+
+
