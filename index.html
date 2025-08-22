@@ -313,7 +313,6 @@
       margin-bottom: 2px;
     }
 
-    /* Estilos para el indicador de carga en línea */
     .loading-indicator {
       display: inline-flex;
       align-items: center;
@@ -359,7 +358,7 @@
       <div style="position: relative;">
         <input type="text" class="input-estilo" id="rut-conductor" onblur="buscarDatosConductor()" placeholder="Ingrese el RUT sin puntos y con guion." />
         <span id="rut-loading" class="loading-indicator" style="display: none;">
-          <span class="small-spinner"></span> Buscando...
+          <span class="small-spinner"></span> <span id="loading-text"></span>
         </span>
       </div>
     </div>
@@ -430,6 +429,7 @@
     const URL_EQUIPOS = "https://script.google.com/macros/s/AKfycbyE134LOrvHahqKg02x_isnlrFhCgBNZtloOll1oyM-CwQOTDySVkvKzmSno0ypzAJWSw/exec";
     const URL_CONDUCTORES = "https://script.google.com/macros/s/AKfycbzGspx2IXG_ut8YxGyJqNLQr7kYN6sEovKJ9XGKwQHXfE1XoH19LmH6-mlmQ7r9LvcpRw/exec";
     const EQUIPOS_HABILITADOS = ["6136", "6137", "6138", "6139", "6148"];
+    let loadingInterval;
 
     function inicializarApp() {
       const guardiaGuardado = localStorage.getItem('guardiaAcciona');
@@ -493,6 +493,25 @@
     }
     setInterval(actualizarFechaHora, 1000);
 
+    function iniciarMensajesCarga() {
+      const estados = ["Ingresando al servidor", "Accediendo a la base de datos", "Filtrando funcionarios", "Descargando reporte"];
+      let indice = 0;
+      
+      document.getElementById("loading-text").textContent = estados[indice];
+      
+      loadingInterval = setInterval(() => {
+        indice = (indice + 1) % estados.length;
+        document.getElementById("loading-text").textContent = estados[indice];
+      }, 3000);
+    }
+
+    function detenerMensajesCarga() {
+      if (loadingInterval) {
+        clearInterval(loadingInterval);
+        loadingInterval = null;
+      }
+    }
+
     async function cargarTodosLosConductores() {
       try {
         let allConductores = [];
@@ -538,10 +557,11 @@
         return;
       }
       
-      // Mostrar indicador de carga junto al campo
       loadingIndicator.style.display = "inline-flex";
       contenedor.innerText = "";
       manualSection.style.display = "none";
+      
+      iniciarMensajesCarga();
       
       const timestamp = localStorage.getItem('conductoresTimestamp');
       const now = new Date().getTime();
@@ -563,7 +583,6 @@
       
       if (!data) {
         try {
-          // Cargar datos en segundo plano sin bloquear la interfaz
           setTimeout(async () => {
             try {
               data = await cargarTodosLosConductores();
@@ -572,6 +591,7 @@
               contenedor.innerText = "❌ Error al buscar.";
               manualSection.style.display = "block";
               loadingIndicator.style.display = "none";
+              detenerMensajesCarga();
             }
           }, 0);
           return;
@@ -579,11 +599,11 @@
           loadingIndicator.style.display = "none";
           contenedor.innerText = "❌ Error al buscar.";
           manualSection.style.display = "block";
+          detenerMensajesCarga();
           return;
         }
       }
       
-      // Si ya tenemos datos, procesar inmediatamente
       procesarDatosConductor(rut, data, contenedor, manualSection, loadingIndicator);
     }
 
@@ -592,6 +612,7 @@
         contenedor.innerText = "❌ Error en formato de datos";
         manualSection.style.display = "block";
         loadingIndicator.style.display = "none";
+        detenerMensajesCarga();
         return;
       }
       
@@ -600,6 +621,7 @@
       );
       
       loadingIndicator.style.display = "none";
+      detenerMensajesCarga();
       
       if (!conductorEncontrado) {
         contenedor.innerText = "❌ No encontrado.";
