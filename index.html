@@ -496,7 +496,7 @@
     setInterval(actualizarFechaHora, 1000);
 
     function iniciarMensajesCarga() {
-      const estados = ["Ingresando al servidor", "Accediendo a la base de datos", "Filtrando funcionarios", "Descargando reporte"];
+      const estados = ["Ingresando al servidor...", "Accediendo a la base de datos...", "Filtrando funcionarios...", "Realizando cruce de información...", "Descargando reporte..."];
       let indice = 0;
       
       document.getElementById("loading-text").textContent = estados[indice];
@@ -504,7 +504,7 @@
       loadingInterval = setInterval(() => {
         indice = (indice + 1) % estados.length;
         document.getElementById("loading-text").textContent = estados[indice];
-      }, 3000);
+      }, 7000);
     }
 
     function detenerMensajesCarga() {
@@ -733,8 +733,8 @@
       
       const textoActual = obsManual.value.trim();
       if (textoActual === "" || 
-          textoActual === "INGRESA A CARGA DE COMBUSTIBLE" || 
-          textoActual === "INGRESA A CARGA ELÉCTRICA" || 
+          textoActual === "INGRESARÁ A REALIZAR CARGA DE COMBUSTIBLE" || 
+          textoActual === "INGRESARÁ A REALIZAR CARGA ELÉCTRICA" || 
           textoActual === "INGRESA A CARGA DE COMBUSTIBLE Y CARGA ELÉCTRICA") {
         obsManual.value = textoObservaciones;
       }
@@ -828,3 +828,4 @@
   </script>
 </body>
 </html>
+
